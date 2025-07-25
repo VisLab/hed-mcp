@@ -11,10 +11,10 @@ import {
 
 // Import tools
 import { 
-  validateStringTool, 
-  handleValidateStringTool,
-  ValidateStringToolArgs 
-} from "./tools/validateStringTool.js";
+  validateHedString, 
+  handleValidateHedString,
+  ValidateHedStringArgs 
+} from "./tools/validateHedStringTool.js";
 
 // Import resources
 import { hedSchemaResource, handleResourceRequest } from "./resources/hedSchema.js";
@@ -48,7 +48,7 @@ class HEDMCPServer {
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
-        tools: [validateStringTool],
+        tools: [validateHedString],
       };
     });
 
@@ -58,7 +58,7 @@ class HEDMCPServer {
 
       switch (name) {
         case "validateStringTool":
-          const result = await handleValidateStringTool(args as ValidateStringToolArgs);
+          const result = await handleValidateHedString(args as ValidateHedStringArgs);
           return {
             content: [
               {

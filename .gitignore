@@ -17,10 +17,19 @@ build/
 
 # IDE and editor files
 .vscode/
+.vscode-test/
 .idea/
 *.swp
 *.swo
 *~
+
+# VS Code specific
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/extensions.json
+.history/
+*.code-workspace
 
 # OS generated files
 .DS_Store
@@ -51,6 +60,33 @@ coverage/
 # TypeScript cache
 *.tsbuildinfo
 
+# TypeScript and JavaScript specific
+*.js.map
+*.d.ts.map
+lib-cov
+*.seed
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+*.tmp
+
+# ESLint cache
+.eslintcache
+
+# Prettier cache
+.prettiercache
+
+# TypeScript incremental compilation
+*.tsbuildinfo
+
+# Jest coverage and cache
+coverage/
+*.lcov
+.jest/
+
 # Optional npm cache directory
 .npm
 
@@ -71,3 +107,52 @@ coverage/
 
 # Yarn Integrity file
 .yarn-integrity
+
+# Webpack
+.webpack/
+
+# Next.js
+.next/
+out/
+
+# Nuxt.js
+.nuxt/
+dist/
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# TypeScript specific
+*.tgz
+*.tar.gz
+
+# Package managers
+.pnpm-debug.log*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# GitHub Actions artifacts (keep workflows)
+!.github/
+.github/*
+!.github/workflows/
+!.github/workflows/*.yml
+!.github/workflows/*.yaml
