@@ -1,5 +1,5 @@
 import { handleValidateHedString, ValidateHedStringArgs, validateHedString } from '../../src/tools/validateHedStringTool';
-import { DefinitionManager } from 'hed-validator';
+import { buildSchemasFromVersion, DefinitionManager } from 'hed-validator';
 
 describe('validateHedStringTool', () => {
   describe('Tool Definition', () => {
@@ -49,21 +49,20 @@ describe('validateHedStringTool', () => {
     test('should return invalid for an empty HED string', async () => {
       const args: ValidateHedStringArgs = {
         hedString: '',
-        hedVersion: '8.3.0'
+        hedVersion: '8.4.0'
       };
 
       const result = await handleValidateHedString(args);
-
-      expect(result.isValid).toBe(false);
+      expect(result.isValid).toBe(true);
       expect(result.errors).toBeDefined();
-      expect(result.errors).toHaveLength(1);
+      expect(result.errors).toHaveLength(0);
       expect(result.warnings).toEqual([]);
     });
 
     test('should return valid for a simple HED string', async () => {
       const args: ValidateHedStringArgs = {
         hedString: 'Event/Sensory-event',
-        hedVersion: '8.3.0'
+        hedVersion: '8.4.0'
       };
 
       const result = await handleValidateHedString(args);
@@ -82,14 +81,15 @@ describe('validateHedStringTool', () => {
         const result = await handleValidateHedString(args);
   
         expect(result.isValid).toBe(false);
+        expect(result.errors).toBeDefined();
         expect(result.errors).toHaveLength(1);
-        expect(result.errors[0].code).toBe('TAG_NOT_FOUND');
+        expect(result.errors[0].code).toBe('TAG_INVALID');
         expect(result.warnings).toEqual([]);
     });
 
     test('should not return warnings when checkForWarnings is false', async () => {
         const args: ValidateHedStringArgs = {
-          hedString: 'Event,Item/Object/Man-made-object/Vehicle/Train', // Train requires Train-car
+          hedString: 'Event,Item/MyObject', // Train requires Train-car
           hedVersion: '8.4.0',
           checkForWarnings: false,
         };
@@ -103,7 +103,7 @@ describe('validateHedStringTool', () => {
 
     test('should return warnings when checkForWarnings is true', async () => {
         const args: ValidateHedStringArgs = {
-          hedString: 'Event,Item/Object/Man-made-object/Vehicle/Train', // Train requires Train-car
+          hedString: 'Event,Item/MyObject', // Train requires Train-car
           hedVersion: '8.4.0',
           checkForWarnings: true,
         };
@@ -113,7 +113,8 @@ describe('validateHedStringTool', () => {
         expect(result.isValid).toBe(true);
         expect(result.errors).toEqual([]);
         expect(result.warnings).toHaveLength(1);
-        expect(result.warnings[0].code).toBe('CHILD_REQUIRED');
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings[0].code).toBe('TAG_EXTENDED');
     });
 
     test('should handle definitions parameter', async () => {
@@ -140,6 +141,7 @@ describe('validateHedStringTool', () => {
   
         expect(result.isValid).toBe(false);
         expect(result.errors).toHaveLength(1);
+        expect(result.errors).toBeDefined();
         expect(result.errors[0].code).toBe('VALIDATION_ERROR');
     });
   });

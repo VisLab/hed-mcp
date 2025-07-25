@@ -1,6 +1,6 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
-import { HedValidationResult } from "../types/index.js";
+import { FormattedIssue, HedValidationResult } from "../types/index.js";
 import { formatIssues } from "../utils/issueFormatter";
 
 // Import HED validation functions
@@ -76,7 +76,10 @@ export async function handleValidateHedString(args: ValidateHedStringArgs): Prom
     // Format errors and warnings using the utility function
     const formattedErrors = formatIssues(errors);
     const isValid = formattedErrors.length === 0;
-    const formattedWarnings = formatIssues(warnings);
+    let formattedWarnings: FormattedIssue[] = [];
+    if (checkForWarnings && warnings.length > 0) {
+      formattedWarnings = formatIssues(warnings);
+    }
 
     return {
       isValid: isValid,
