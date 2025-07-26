@@ -15,25 +15,9 @@ export interface FormattedIssue {
   location: string;
 }
 
-export interface ValidationResult {
-  isValid: boolean;
-  errors?: string[];
-  warnings?: string[];
-}
-
 export interface HedValidationResult {
   isValid: boolean;
   errors?: FormattedIssue[];
   warnings?: FormattedIssue[];
   issues?: Array<object | string>;
-}
-
-export interface StringValidationOptions {
-  strict?: boolean;
-  allowWarnings?: boolean;
-}
-
-export interface HEDValidationContext {
-  schemaVersion?: string;
-  validationRules?: string[];
 }

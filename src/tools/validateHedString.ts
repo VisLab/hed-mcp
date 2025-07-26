@@ -1,7 +1,7 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { FormattedIssue, HedValidationResult } from "../types/index.js";
-import { formatIssues } from "../utils/issueFormatter";
+import { formatIssues } from "../utils/issueFormatter.js";
 
 // Import HED validation functions
 import { parseStandaloneString, buildSchemasFromVersion } from "hed-validator";

@@ -14,7 +14,7 @@ import {
   validateHedString, 
   handleValidateHedString,
   ValidateHedStringArgs 
-} from "./tools/validateHedStringTool.js";
+} from "./tools/validateHedString.js";
 
 // Import resources
 import { hedSchemaResource, handleResourceRequest } from "./resources/hedSchema.js";
@@ -57,7 +57,7 @@ class HEDMCPServer {
       const { name, arguments: args } = request.params;
 
       switch (name) {
-        case "validateStringTool":
+        case "validateHedString":
           const result = await handleValidateHedString(args as ValidateHedStringArgs);
           return {
             content: [
