@@ -95,7 +95,7 @@ export async function handleValidateHedString(args: ValidateHedStringArgs): Prom
         code: "VALIDATION_ERROR",
         detailedCode: "VALIDATION_ERROR",
         severity: "error",
-        message: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Validation failed: ${error && typeof error === "object" && "message" in error ? error.message : error instanceof Error ? error.message : 'Unknown error'}`,
         line: "",
         column: "",
         location: ""

@@ -1,5 +1,5 @@
 import { handleGetFileFromPath } from "../../src/tools/getFileFromPath";
-import *s as fs from "fs";
+import * as fs from "fs";
 import * as path from "path";
 
 describe("handleGetFileFromPath", () => {
