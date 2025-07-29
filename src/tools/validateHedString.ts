@@ -1,7 +1,7 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { FormattedIssue, HedValidationResult } from "../types/index.js";
-import { formatIssues } from "../utils/issueFormatter";
+import { formatIssues } from "../utils/issueFormatter.js";
 
 // Import HED validation functions
 import { parseStandaloneString, buildSchemasFromVersion } from "hed-validator";
@@ -95,7 +95,7 @@ export async function handleValidateHedString(args: ValidateHedStringArgs): Prom
         code: "VALIDATION_ERROR",
         detailedCode: "VALIDATION_ERROR",
         severity: "error",
-        message: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Validation failed: ${error && typeof error === "object" && "message" in error ? error.message : error instanceof Error ? error.message : 'Unknown error'}`,
         line: "",
         column: "",
         location: ""

@@ -1,18 +1,18 @@
-import { validateStringTool } from '../src/tools/validateStringTool';
+import { validateHedString } from '../src/tools/validateHedString';
 import { hedSchemaResource } from '../src/resources/hedSchema';
-import { ValidationResult } from '../src/types/index';
+import { HedValidationResult, FormattedIssue } from '../src/types/index';
 
 describe('Project Integration', () => {
   describe('Module Imports', () => {
     test('should successfully import all main modules', () => {
-      expect(validateStringTool).toBeDefined();
+      expect(validateHedString).toBeDefined();
       expect(hedSchemaResource).toBeDefined();
     });
 
     test('should have tool with expected structure', () => {
-      expect(validateStringTool).toHaveProperty('name');
-      expect(validateStringTool).toHaveProperty('description');
-      expect(validateStringTool).toHaveProperty('inputSchema');
+      expect(validateHedString).toHaveProperty('name');
+      expect(validateHedString).toHaveProperty('description');
+      expect(validateHedString).toHaveProperty('inputSchema');
     });
 
     test('should have resource with expected structure', () => {
@@ -24,56 +24,76 @@ describe('Project Integration', () => {
   });
 
   describe('Type System', () => {
-    test('should create valid ValidationResult objects', () => {
-      const successResult: ValidationResult = {
-        isValid: true
+    test('should create valid HedValidationResult objects', () => {
+      const successResult: HedValidationResult = {
+        isValid: true,
       };
 
-      const errorResult: ValidationResult = {
+      const testError: FormattedIssue = {
+        code: 'TEST_ERROR',
+        detailedCode: 'TEST_ERROR_DETAILED',
+        severity: 'error',
+        message: 'This is a test error.',
+        column: '1',
+        line: '1',
+        location: 'Line 1, Column 1',
+      };
+
+      const testWarning: FormattedIssue = {
+        code: 'TEST_WARNING',
+        detailedCode: 'TEST_WARNING_DETAILED',
+        severity: 'warning',
+        message: 'This is a test warning.',
+        column: '10',
+        line: '2',
+        location: 'Line 2, Column 10',
+      };
+
+      const errorResult: HedValidationResult = {
         isValid: false,
-        errors: ['Test error'],
-        warnings: ['Test warning']
+        errors: [testError],
+        warnings: [testWarning],
       };
 
       expect(successResult.isValid).toBe(true);
       expect(errorResult.isValid).toBe(false);
-      expect(errorResult.errors).toContain('Test error');
-      expect(errorResult.warnings).toContain('Test warning');
+      expect(errorResult.errors).toContain(testError);
+      expect(errorResult.warnings).toContain(testWarning);
     });
   });
 
   describe('Project Structure Consistency', () => {
     test('should have consistent naming conventions', () => {
       // Tool names should be camelCase
-      expect(validateStringTool.name).toMatch(/^[a-z][a-zA-Z]*$/);
-      
+      expect(validateHedString.name).toMatch(/^[a-z][a-zA-Z0-9]*$/);
+
       // Resource URIs should follow expected pattern
       expect(hedSchemaResource.uri).toMatch(/^[a-z]+:\/\//);
     });
 
     test('should have proper schema definitions', () => {
       // Tool should have proper input schema
-      expect(validateStringTool.inputSchema).toHaveProperty('type');
-      expect(validateStringTool.inputSchema).toHaveProperty('properties');
-      
+      expect(validateHedString.inputSchema).toHaveProperty('type');
+      expect(validateHedString.inputSchema).toHaveProperty('properties');
+
       // Resource should have proper MIME type
-      expect(hedSchemaResource.mimeType).toMatch(/^[a-z]+\/[a-z]+$/);
+      expect(hedSchemaResource.mimeType).toMatch(/^[a-z]+\/[a-z-]+\+?[a-z]+$/);
     });
   });
 
   describe('Configuration Validation', () => {
     test('should have tools that can be serialized', () => {
-      const serialized = JSON.stringify(validateStringTool);
+      const serialized = JSON.stringify(validateHedString);
       const deserialized = JSON.parse(serialized);
-      
-      expect(deserialized.name).toBe(validateStringTool.name);
-      expect(deserialized.description).toBe(validateStringTool.description);
+
+      expect(deserialized.name).toBe(validateHedString.name);
+      expect(deserialized.description).toBe(validateHedString.description);
     });
 
     test('should have resources that can be serialized', () => {
       const serialized = JSON.stringify(hedSchemaResource);
       const deserialized = JSON.parse(serialized);
-      
+
       expect(deserialized.uri).toBe(hedSchemaResource.uri);
       expect(deserialized.name).toBe(hedSchemaResource.name);
     });

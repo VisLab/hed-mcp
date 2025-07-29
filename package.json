@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.16.0",
-    "hed-validator": "file:i:/HEDJavascript/hed-javascript",
+    "hed-validator": "github:hed-standard/hed-javascript",
     "zod": "^3.25.76"
   }
 }

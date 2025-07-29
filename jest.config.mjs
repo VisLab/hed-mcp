@@ -14,7 +14,8 @@ export default {
     }]
   },
   moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1'
+    'hed-validator': '<rootDir>/node_modules/hed-validator/dist/commonjs/index.js',
+    '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   collectCoverageFrom: [
     'src/**/*.ts',
