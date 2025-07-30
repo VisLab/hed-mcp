@@ -1,8 +1,10 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
+import * as path from "path";
 import { FormattedIssue, HedValidationResult } from "../types/index.js";
-import { formatIssues } from "../utils/issueFormatter.js";
+import { formatIssues, separateIssuesBySeverity } from "../utils/issueFormatter.js";
 import { readFileFromPath } from "../utils/fileReader.js";
+import { schemaCache } from '../utils/schemaCache.js';
 
 // Import HED validation functions
 import { buildSchemasFromVersion, BidsSidecar } from "hed-validator";
@@ -51,12 +53,11 @@ export const validateHedSidecar: Tool = {
  * Validate a HED sidecar file using the specified HED schema version.
  */
 export async function handleValidateHedSidecar(args: ValidateHedSidecarArgs): Promise<HedValidationResult> {
-  const { filePath, hedVersion, checkForWarnings = false, fileData='' } = args;
+  const { filePath, hedVersion, checkForWarnings = false, fileData } = args;
 
   try {
-    // Use buildSchemasFromVersion with the specified version
-    const hedSchemas = await buildSchemasFromVersion(hedVersion);
-    console.log(`Successfully loaded HED schemas for version ${hedVersion}`);
+    // Use schema cache to get or create the HED schemas
+    const hedSchemas = await schemaCache.getOrCreateSchema(hedVersion);
 
     // Get the file data if not provided
     let data = fileData;
@@ -67,14 +68,14 @@ export async function handleValidateHedSidecar(args: ValidateHedSidecarArgs): Pr
         return {
           isValid: false,
           errors: [{
-            code: "FILE_READ_ERROR",
-            detailedCode: "FILE_READ_ERROR",
+            code: "INTERNAL_ERROR",
+            detailedCode: "fileReadError",
             severity: "error",
-            message: `Failed to read file: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            message: `Failed to read file ${filePath}: ${error instanceof Error ? error.message : 'Unknown error'}`,
             line: "",
             column: "",
             location: filePath
-          }],
+          } as FormattedIssue],
           warnings: []
         };
       }
@@ -89,36 +90,40 @@ export async function handleValidateHedSidecar(args: ValidateHedSidecarArgs): Pr
         return {
           isValid: false,
           errors: [{
-            code: "JSON_PARSE_ERROR",
-            detailedCode: "JSON_PARSE_ERROR",
+            code: "SIDECAR_INVALID",
+            detailedCode: "illegalSidecarData",
             severity: "error",
             message: `Failed to parse JSON: ${error instanceof Error ? error.message : 'Invalid JSON format'}`,
             line: "",
             column: "",
             location: filePath
-          }],
+          } as FormattedIssue],
           warnings: []
         };
       }
     } else {
       jsonData = data;
     }
-    const fileName = filePath.split(/[/\\]/).pop() || "sidecar.json"; // Extract file name from path (handle both / and \)
+    
+    const fileName = path.basename(filePath) || "sidecar.json"; // Properly extract filename using path.basename
     const sidecar = new BidsSidecar(fileName, { path: filePath, name: fileName }, jsonData);
     const validationIssues = sidecar.validate(hedSchemas);
-    // TODO: warning separation here.
     
-    const formattedErrors = formatIssues(validationIssues);
+    // Format all validation issues
+    const allFormattedIssues = formatIssues(validationIssues);
+    
+    // Separate issues by severity
+    const { errors: formattedErrors, others: formattedWarnings } = separateIssuesBySeverity(allFormattedIssues);
+    
     const isValid = formattedErrors.length === 0;
-    let formattedWarnings: FormattedIssue[] = [];
-    // if (checkForWarnings && formattedWarnings.length > 0) {
-    //  formattedWarnings = formatIssues(warnings);
-    // }
+    
+    // Only include warnings if checkForWarnings is true
+    const finalWarnings = checkForWarnings ? formattedWarnings : [];
     
     return {
       isValid: isValid,
       errors: formattedErrors,
-      warnings: formattedWarnings
+      warnings: finalWarnings
     };
 
   } catch (error) {
@@ -133,7 +138,7 @@ export async function handleValidateHedSidecar(args: ValidateHedSidecarArgs): Pr
         line: "",
         column: "",
         location: ""
-      }],
+      } as FormattedIssue],
       warnings: []
     };
   }

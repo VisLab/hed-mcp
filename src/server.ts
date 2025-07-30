@@ -24,6 +24,9 @@ import {
 // Import resources
 import { hedSchemaResource, handleResourceRequest } from "./resources/hedSchema.js";
 
+// Import schema cache
+import { schemaCache } from "./utils/schemaCache.js";
+
 /**
  * HED MCP Server
  * Provides tools and resources for HED (Hierarchical Event Descriptor) validation
@@ -47,6 +50,9 @@ class HEDMCPServer {
 
     this.setupToolHandlers();
     this.setupResourceHandlers();
+    
+    // Log cache initialization
+    console.error("HED Schema cache initialized");
   }
 
   private setupToolHandlers(): void {

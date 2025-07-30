@@ -1,7 +1,8 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { FormattedIssue, HedValidationResult } from "../types/index.js";
-import { formatIssues } from "../utils/issueFormatter.js";
+import { formatIssues, separateIssuesBySeverity } from "../utils/issueFormatter.js";
+import { schemaCache } from '../utils/schemaCache.js';
 
 // Import HED validation functions
 import { parseStandaloneString, buildSchemasFromVersion } from "hed-validator";
@@ -58,9 +59,8 @@ export async function handleValidateHedString(args: ValidateHedStringArgs): Prom
   const { hedString, hedVersion, checkForWarnings = false, definitions = [] } = args;
 
   try {
-    // Use buildSchemasFromVersion with the specified version
-    const hedSchemas = await buildSchemasFromVersion(hedVersion);
-    console.log(`Successfully loaded HED schemas for version ${hedVersion}`);
+    // Use schema cache to get or create the HED schemas
+    const hedSchemas = await schemaCache.getOrCreateSchema(hedVersion);
 
     // Process definitions if provided
     let defManager: any = null;
@@ -73,18 +73,21 @@ export async function handleValidateHedString(args: ValidateHedStringArgs): Prom
     // Parse and validate the HED string
     const [parsedString, errors, warnings] = parseStandaloneString(hedString, hedSchemas, defManager);
 
-    // Format errors and warnings using the utility function
-    const formattedErrors = formatIssues(errors);
-    const isValid = formattedErrors.length === 0;
-    let formattedWarnings: FormattedIssue[] = [];
-    if (checkForWarnings && warnings.length > 0) {
-      formattedWarnings = formatIssues(warnings);
-    }
+    // Format and separate all validation issues
+    const allErrors = formatIssues(errors);
+    const allWarnings = formatIssues(warnings);
+    
+    // For HED string validation, errors and warnings come pre-separated from parseStandaloneString
+    // But we could also use separateIssuesBySeverity if we had mixed issues
+    const isValid = allErrors.length === 0;
+    
+    // Only include warnings if checkForWarnings is true
+    const finalWarnings = checkForWarnings ? allWarnings : [];
 
     return {
       isValid: isValid,
-      errors: formattedErrors,
-      warnings: formattedWarnings
+      errors: allErrors,
+      warnings: finalWarnings
     };
 
   } catch (error) {
@@ -99,7 +102,8 @@ export async function handleValidateHedString(args: ValidateHedStringArgs): Prom
         line: "",
         column: "",
         location: ""
-      }]
+      } as FormattedIssue],
+      warnings: []
     };
   }
 }

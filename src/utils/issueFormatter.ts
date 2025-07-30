@@ -183,3 +183,27 @@ function formatUnknownIssue(issue: any): FormattedIssue {
     return formatStringIssue("UNKNOWN: " + errorMessage);
   }
 }
+
+/**
+ * Separates a list of FormattedIssues into errors and non-errors based on severity.
+ * 
+ * @param issues - Array of FormattedIssue objects to separate
+ * @returns Object containing separate arrays for errors and other issues
+ */
+export function separateIssuesBySeverity(issues: FormattedIssue[]): {
+  errors: FormattedIssue[];
+  others: FormattedIssue[];
+} {
+  const errors: FormattedIssue[] = [];
+  const others: FormattedIssue[] = [];
+
+  for (const issue of issues) {
+    if (issue.severity === "error") {
+      errors.push(issue);
+    } else {
+      others.push(issue);
+    }
+  }
+
+  return { errors, others };
+}
