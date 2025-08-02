@@ -1,7 +1,7 @@
-import { handleValidateHedString, ValidateHedStringArgs, validateHedString } from '../../src/tools/validateHedString';
+﻿import { handleValidateHedString, ValidateHedStringArgs, validateHedString } from '../../src/tools/validateHedString';
 import { buildSchemasFromVersion, DefinitionManager } from 'hed-validator';
-
 describe('validateHedStringTool', () => {
+
   describe('Tool Definition', () => {
     test('should have correct tool name', () => {
       expect(validateHedString.name).toBe('validateHedString');
@@ -49,41 +49,43 @@ describe('validateHedStringTool', () => {
     test('should return invalid for an empty HED string', async () => {
       const args: ValidateHedStringArgs = {
         hedString: '',
-        hedVersion: '8.4.0'
+        hedVersion: '8.4.0',
+        checkForWarnings: false
       };
-
       const result = await handleValidateHedString(args);
-      expect(result.isValid).toBe(true);
+      expect(result).toBeDefined();
       expect(result.errors).toBeDefined();
-      expect(result.errors).toHaveLength(0);
+      expect(result.errors).toEqual([]);
+      expect(result.warnings).toBeDefined();
       expect(result.warnings).toEqual([]);
     });
 
     test('should return valid for a simple HED string', async () => {
       const args: ValidateHedStringArgs = {
         hedString: 'Event/Sensory-event',
-        hedVersion: '8.4.0'
+        hedVersion: '8.4.0',
+        checkForWarnings: false
       };
-
       const result = await handleValidateHedString(args);
-
-      expect(result.isValid).toBe(true);
+      expect(result).toBeDefined();
+      expect(result.errors).toBeDefined();
       expect(result.errors).toEqual([]);
+      expect(result.warnings).toBeDefined();
       expect(result.warnings).toEqual([]);
     });
 
     test('should return an error for an invalid HED string', async () => {
         const args: ValidateHedStringArgs = {
           hedString: 'InvalidTag',
-          hedVersion: '8.4.0'
+          hedVersion: '8.4.0',
+          checkForWarnings: false
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(false);
+        expect(result).toBeDefined();
         expect(result.errors).toBeDefined();
         expect(result.errors).toHaveLength(1);
         expect(result.errors[0].code).toBe('TAG_INVALID');
+        expect(result.warnings).toBeDefined();
         expect(result.warnings).toEqual([]);
     });
 
@@ -93,11 +95,11 @@ describe('validateHedStringTool', () => {
           hedVersion: '8.4.0',
           checkForWarnings: false,
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(true);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
         expect(result.errors).toEqual([]);
+        expect(result.warnings).toBeDefined();
         expect(result.warnings).toEqual([]);
     });
 
@@ -107,13 +109,12 @@ describe('validateHedStringTool', () => {
           hedVersion: '8.4.0',
           checkForWarnings: true,
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(true);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
         expect(result.errors).toEqual([]);
-        expect(result.warnings).toHaveLength(1);
         expect(result.warnings).toBeDefined();
+        expect(result.warnings).toHaveLength(1);
         expect(result.warnings[0].code).toBe('TAG_EXTENDED');
     });
 
@@ -122,27 +123,161 @@ describe('validateHedStringTool', () => {
         const args: ValidateHedStringArgs = {
           hedString: 'Red, Def/myDef',
           hedVersion: '8.4.0',
+          checkForWarnings: false,
           definitions: ['(Definition/myDef, (Event))']
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(true);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
         expect(result.errors).toEqual([]);
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings).toEqual([]);
+    });
+
+    test('should return early with definition errors', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Event/Sensory-event', // Valid HED string
+          hedVersion: '8.4.0',
+          checkForWarnings: false,
+          definitions: ['(Definition/BadDef, Red)'] // Invalid definition - missing parentheses
+        };
+        const result = await handleValidateHedString(args);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0].code).toBe('DEFINITION_INVALID');
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings).toEqual([]);
+    });
+
+    test('should include definition warnings when checkForWarnings is true', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Event/Sensory-event', // Valid HED string
+          hedVersion: '8.4.0',
+          checkForWarnings: true,
+          definitions: ['(Definition/WarningDef, (Red/Blech))'] 
+        };
+        const result = await handleValidateHedString(args);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
+        expect(result.errors).toEqual;
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings.length).toBeGreaterThan(0);
+    });
+
+    test('should not include definition warnings when checkForWarnings is false', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Event/Sensory-event, Def/WarningDef', // Valid HED string
+          hedVersion: '8.4.0',
+          checkForWarnings: false,
+          definitions: ['(Definition/WarningDef, (Red/Blech))']
+        };
+        // TODO: Implement when we have a definition that generates warnings
+        const result = await handleValidateHedString(args);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
+        expect(result.errors).toEqual([]);
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings).toEqual([]);
+    });
+
+    test('should combine definition warnings with HED string warnings', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Green/Baloney, Def/WarningDef', // Valid HED string
+          hedVersion: '8.4.0',
+          checkForWarnings: true,
+          definitions: ['(Definition/WarningDef, (Red/Blech))']
+        };
+        const result = await handleValidateHedString(args);
+              expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
+        expect(result.errors).toEqual([]);
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings!.length).toBeGreaterThan(1); // Should have both types of warnings
+    });
+
+    test('should handle multiple valid definitions', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Red, Def/FirstDef, Def/SecondDef',
+          hedVersion: '8.4.0',
+          checkForWarnings: true,
+          definitions: [
+            '(Definition/FirstDef, (Blue))',
+            '(Definition/SecondDef, (Green))'
+          ]
+        };
+        const result = await handleValidateHedString(args);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
+        expect(result.errors).toEqual([]);
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings).toEqual([]);
+    });
+
+    test('should handle conflicting definitions', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Event/Sensory-event', // Valid HED string 
+          hedVersion: '8.4.0',
+          checkForWarnings: false,
+          definitions: [
+            '(Definition/ConflictDef, (Red))',
+            '(Definition/ConflictDef, (Blue))' // Same name, different definition
+          ]
+        };
+        const result = await handleValidateHedString(args);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings).toEqual([]);
+    });
+
+    test('should handle empty definitions array', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Event/Sensory-event',
+          hedVersion: '8.4.0',
+          checkForWarnings: false,
+          definitions: []
+        };
+        const result = await handleValidateHedString(args);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
+        expect(result.errors).toEqual([]);
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings).toEqual([]);
+    });
+
+    test('should handle malformed definition strings', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Event/Sensory-event', // Valid HED string
+          hedVersion: '8.4.0',
+          checkForWarnings: false,
+          definitions: [
+            'Not a definition at all',
+            '(Definition/ValidDef, (Green))' // Valid definition
+          ]
+        };
+        const result = await handleValidateHedString(args);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings).toEqual([]);
     });
 
     test('should return an error for an invalid HED version', async () => {
         const args: ValidateHedStringArgs = {
           hedString: 'Event',
-          hedVersion: 'invalid-version'
+          hedVersion: 'invalid-version',
+          checkForWarnings: false
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(false);
-        expect(result.errors).toHaveLength(1);
+        expect(result).toBeDefined();
         expect(result.errors).toBeDefined();
-        expect(result.errors[0].code).toBe('VALIDATION_ERROR');
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0].code).toBe('SCHEMA_LOAD_FAILED');
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings).toEqual([]);
     });
   });
 });

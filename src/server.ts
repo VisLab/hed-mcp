@@ -15,9 +15,22 @@ import {
   handleValidateHedString,
   ValidateHedStringArgs 
 } from "./tools/validateHedString.js";
+import {
+  parseHedSidecar,
+  handleParseHedSidecar,
+  ParseHedSidecarArgs
+} from "./tools/parseHedSidecar.js";
+import {
+  validateHedTsv,
+  handleValidateHedTsv,
+  ValidateHedTsvArgs
+} from "./tools/validateHedTsv.js";
 
 // Import resources
 import { hedSchemaResource, handleResourceRequest } from "./resources/hedSchema.js";
+
+// Import schema cache
+import { schemaCache } from "./utils/schemaCache.js";
 
 /**
  * HED MCP Server
@@ -42,13 +55,16 @@ class HEDMCPServer {
 
     this.setupToolHandlers();
     this.setupResourceHandlers();
+    
+    // Log cache initialization
+    console.error("HED Schema cache initialized");
   }
 
   private setupToolHandlers(): void {
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
-        tools: [validateHedString],
+        tools: [validateHedString, parseHedSidecar, validateHedTsv],
       };
     });
 
@@ -64,6 +80,28 @@ class HEDMCPServer {
               {
                 type: "text",
                 text: JSON.stringify(result, null, 2),
+              },
+            ],
+          };
+
+        case "parseHedSidecar":
+          const sidecarResult = await handleParseHedSidecar(args as ParseHedSidecarArgs);
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(sidecarResult, null, 2),
+              },
+            ],
+          };
+
+        case "validateHedTsv":
+          const tsvResult = await handleValidateHedTsv(args as ValidateHedTsvArgs);
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(tsvResult, null, 2),
               },
             ],
           };

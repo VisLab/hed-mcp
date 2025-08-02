@@ -2,6 +2,8 @@
  * Shared TypeScript types and interfaces for the HED MCP server
  */
 
+import { DefinitionManager } from 'hed-validator';
+
 /**
  * Standardized issue format for all tools and resources
  */
@@ -16,8 +18,25 @@ export interface FormattedIssue {
 }
 
 export interface HedValidationResult {
-  isValid: boolean;
-  errors?: FormattedIssue[];
-  warnings?: FormattedIssue[];
-  issues?: Array<object | string>;
+  errors: FormattedIssue[];
+  warnings: FormattedIssue[];
+}
+
+/**
+ * Result type for definition processing operations
+ */
+export interface DefinitionResult {
+  definitionManager: DefinitionManager | null | undefined;
+  errors: FormattedIssue[];
+  warnings: FormattedIssue[];
+}
+
+/**
+ * Result type specifically for parseHedSidecar tool
+ * Extends basic validation with the parsed sidecar data
+ */
+export interface ParseHedSidecarResult {
+  parsedHedSidecar: string; // Stringified JSON of the parsed sidecar data
+  errors: FormattedIssue[];
+  warnings: FormattedIssue[];
 }

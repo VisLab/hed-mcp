@@ -32,6 +32,8 @@ export function formatIssue(issue: any): FormattedIssue {
     formattedIssue = formatStringIssue(issue);
   } else if (issue instanceof IssueError) {
     formattedIssue = formatHedIssueError(issue);
+  } else if (issue instanceof Error) {
+    formattedIssue = formatError(issue);
   } else if (issue instanceof BidsHedIssue) {
     formattedIssue = formatBidsHedIssue(issue);
   } else if (issue instanceof Issue) {
@@ -76,6 +78,26 @@ function formatHedIssueError(issue: IssueError): FormattedIssue {
     return formatHedIssue(issue.issue);
   }
   
+  const formattedIssue: FormattedIssue = {
+    code: 'INTERNAL_ERROR',
+    detailedCode: 'INTERNAL_ERROR',
+    severity: 'error',
+    message: String(issue.message) || "Unknown error",
+    column: "",
+    line: "",
+    location: ""
+  };
+  return formattedIssue;
+}
+
+/**
+ * Format an Error into the standardized issue format
+ * 
+ * @param issue - Error object
+ * @returns Formatted issue object
+ */
+function formatError(issue: Error): FormattedIssue {
+ 
   const formattedIssue: FormattedIssue = {
     code: 'INTERNAL_ERROR',
     detailedCode: 'INTERNAL_ERROR',
@@ -180,6 +202,30 @@ function formatUnknownIssue(issue: any): FormattedIssue {
     return formatStringIssue(issueAsString);
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : String(e);
-    return formatStringIssue("UNKNOWN: " + errorMessage);
+    return formatStringIssue("INTERNAL_ERROR: " + errorMessage);
   }
+}
+
+/**
+ * Separates a list of FormattedIssues into errors and non-errors based on severity.
+ * 
+ * @param issues - Array of FormattedIssue objects to separate
+ * @returns Object containing separate arrays for errors and other issues
+ */
+export function separateIssuesBySeverity(issues: FormattedIssue[]): {
+  errors: FormattedIssue[];
+  others: FormattedIssue[];
+} {
+  const errors: FormattedIssue[] = [];
+  const others: FormattedIssue[] = [];
+
+  for (const issue of issues) {
+    if (issue.severity === "error") {
+      errors.push(issue);
+    } else {
+      others.push(issue);
+    }
+  }
+
+  return { errors, others };
 }

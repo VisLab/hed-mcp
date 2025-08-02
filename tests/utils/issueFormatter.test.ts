@@ -1,4 +1,4 @@
-import { formatIssues, formatIssue, FormattedIssue } from '../../src/utils/issueFormatter';
+import { formatIssues, formatIssue, FormattedIssue, separateIssuesBySeverity } from '../../src/utils/issueFormatter';
 import { Issue, BidsHedIssue, IssueError } from 'hed-validator';
 
 describe('issueFormatter', () => {
@@ -83,6 +83,24 @@ describe('issueFormatter', () => {
                 const actual = formatIssues(issues);
                 expect(actual).toEqual(expected);
             }
+        });
+
+        it('should format a generic Error object correctly', () => {
+            const error = new Error('This is a generic error message');
+            const issues = [error];
+            const expected: FormattedIssue[] = [
+                {
+                    code: 'INTERNAL_ERROR',
+                    detailedCode: 'INTERNAL_ERROR',
+                    severity: 'error',
+                    message: 'This is a generic error message',
+                    column: '',
+                    line: '',
+                    location: '',
+                },
+            ];
+            const actual = formatIssues(issues);
+            expect(actual).toEqual(expected);
         });
 
         it('should format a plain object issue correctly', () => {
@@ -194,6 +212,124 @@ describe('issueFormatter', () => {
             const expected: FormattedIssue[] = [];
             const actual = formatIssues(issues);
             expect(actual).toEqual(expected);
+        });
+    });
+
+    describe('separateIssuesBySeverity', () => {
+        it('should separate errors from other issues', () => {
+            const issues: FormattedIssue[] = [
+                {
+                    code: 'ERROR_CODE',
+                    detailedCode: 'ERROR_DETAILED',
+                    severity: 'error',
+                    message: 'This is an error',
+                    column: '',
+                    line: '',
+                    location: ''
+                },
+                {
+                    code: 'WARNING_CODE',
+                    detailedCode: 'WARNING_DETAILED',
+                    severity: 'warning',
+                    message: 'This is a warning',
+                    column: '',
+                    line: '',
+                    location: ''
+                },
+                {
+                    code: 'INFO_CODE',
+                    detailedCode: 'INFO_DETAILED',
+                    severity: 'info',
+                    message: 'This is info',
+                    column: '',
+                    line: '',
+                    location: ''
+                },
+                {
+                    code: 'ANOTHER_ERROR',
+                    detailedCode: 'ANOTHER_ERROR_DETAILED',
+                    severity: 'error',
+                    message: 'This is another error',
+                    column: '',
+                    line: '',
+                    location: ''
+                }
+            ];
+
+            const result = separateIssuesBySeverity(issues);
+
+            expect(result.errors).toHaveLength(2);
+            expect(result.others).toHaveLength(2);
+            
+            expect(result.errors[0].severity).toBe('error');
+            expect(result.errors[1].severity).toBe('error');
+            
+            expect(result.others[0].severity).toBe('warning');
+            expect(result.others[1].severity).toBe('info');
+        });
+
+        it('should handle all errors', () => {
+            const issues: FormattedIssue[] = [
+                {
+                    code: 'ERROR1',
+                    detailedCode: 'ERROR1_DETAILED',
+                    severity: 'error',
+                    message: 'Error 1',
+                    column: '',
+                    line: '',
+                    location: ''
+                },
+                {
+                    code: 'ERROR2',
+                    detailedCode: 'ERROR2_DETAILED',
+                    severity: 'error',
+                    message: 'Error 2',
+                    column: '',
+                    line: '',
+                    location: ''
+                }
+            ];
+
+            const result = separateIssuesBySeverity(issues);
+
+            expect(result.errors).toHaveLength(2);
+            expect(result.others).toHaveLength(0);
+        });
+
+        it('should handle no errors', () => {
+            const issues: FormattedIssue[] = [
+                {
+                    code: 'WARNING_CODE',
+                    detailedCode: 'WARNING_DETAILED',
+                    severity: 'warning',
+                    message: 'This is a warning',
+                    column: '',
+                    line: '',
+                    location: ''
+                },
+                {
+                    code: 'INFO_CODE',
+                    detailedCode: 'INFO_DETAILED',
+                    severity: 'info',
+                    message: 'This is info',
+                    column: '',
+                    line: '',
+                    location: ''
+                }
+            ];
+
+            const result = separateIssuesBySeverity(issues);
+
+            expect(result.errors).toHaveLength(0);
+            expect(result.others).toHaveLength(2);
+        });
+
+        it('should handle empty array', () => {
+            const issues: FormattedIssue[] = [];
+            const result = separateIssuesBySeverity(issues);
+
+            expect(result.errors).toHaveLength(0);
+            expect(result.others).toHaveLength(0);
         });
     });
 });
