@@ -3,7 +3,8 @@
  */
 
 import { Definition, DefinitionManager, Issue, Schemas } from 'hed-validator';
-import { FormattedIssue, formatIssues } from './issueFormatter.js';
+import { FormattedIssue, DefinitionResult } from '../types/index.js';
+import { formatIssues } from './issueFormatter.js';
 
 export interface ConvertDefinitionsResult {
   /**
@@ -20,23 +21,6 @@ export interface ConvertDefinitionsResult {
    * Warning issues encountered during processing
    */
   warnings: Issue[];
-}
-
-export interface CreateDefinitionManagerResult {
-  /**
-   * The DefinitionManager with all successfully processed definitions, or null if no definitions
-   */
-  definitionManager: DefinitionManager | null;
-  
-  /**
-   * Error issues encountered during processing
-   */
-  errors: FormattedIssue[];
-  
-  /**
-   * Warning issues encountered during processing
-   */
-  warnings: FormattedIssue[];
 }
 
 /**
@@ -79,12 +63,12 @@ export function convertDefinitions(
  * 
  * @param definitionStrings - Array of definition strings to process
  * @param hedSchemas - The HED schemas to use for definition creation and validation
- * @returns CreateDefinitionManagerResult - DefinitionManager (or null) and formatted issues
+ * @returns DefinitionResult - DefinitionManager (or null) and formatted issues
  */
 export function createDefinitionManager(
   definitionStrings: string[], 
   hedSchemas: Schemas
-): CreateDefinitionManagerResult {
+): DefinitionResult {
   // Return null DefinitionManager if definitions is empty, null, or undefined
   if (!definitionStrings || definitionStrings.length === 0) {
     return {

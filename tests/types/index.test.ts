@@ -26,13 +26,12 @@ describe('Type Definitions', () => {
   describe('HedValidationResult', () => {
     test('should represent a valid result', () => {
       const result: HedValidationResult = {
-        isValid: true,
+        errors: [],
+        warnings: []
       };
 
-      expect(result.isValid).toBe(true);
-      expect(result.errors).toBeUndefined();
-      expect(result.warnings).toBeUndefined();
-      expect(result.issues).toBeUndefined();
+      expect(result.errors).toEqual([]);
+      expect(result.warnings).toEqual([]);
     });
 
     test('should represent an invalid result with errors', () => {
@@ -46,13 +45,12 @@ describe('Type Definitions', () => {
         location: 'Line 1, Column 1',
       };
       const result: HedValidationResult = {
-        isValid: false,
         errors: [error],
+        warnings: []
       };
 
-      expect(result.isValid).toBe(false);
       expect(result.errors).toHaveLength(1);
-      expect(result.errors?.[0].code).toBe('ERROR_CODE');
+      expect(result.errors[0].code).toBe('ERROR_CODE');
     });
 
     test('should represent a valid result with warnings', () => {
@@ -66,24 +64,22 @@ describe('Type Definitions', () => {
         location: 'Line 2, Column 10',
       };
       const result: HedValidationResult = {
-        isValid: true,
-        warnings: [warning],
+        errors: [],
+        warnings: [warning]
       };
 
-      expect(result.isValid).toBe(true);
       expect(result.warnings).toHaveLength(1);
-      expect(result.warnings?.[0].severity).toBe('warning');
+      expect(result.warnings[0].severity).toBe('warning');
     });
 
-    test('should handle results with generic issues', () => {
+    test('should handle results with no errors or warnings', () => {
       const result: HedValidationResult = {
-        isValid: false,
-        issues: ['This is a simple issue string.', { custom: 'issue object' }],
+        errors: [],
+        warnings: []
       };
 
-      expect(result.isValid).toBe(false);
-      expect(result.issues).toHaveLength(2);
-      expect(result.issues).toContain('This is a simple issue string.');
+      expect(result.errors).toHaveLength(0);
+      expect(result.warnings).toHaveLength(0);
     });
   });
 });

@@ -2,13 +2,14 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import * as path from "path";
 import { FormattedIssue, HedValidationResult } from "../types/index.js";
-import { formatIssues, separateIssuesBySeverity } from "../utils/issueFormatter.js";
+import { formatIssue, formatIssues, separateIssuesBySeverity } from "../utils/issueFormatter.js";
 import { readFileFromPath } from "../utils/fileReader.js";
 import { schemaCache } from '../utils/schemaCache.js';
+import { createDefinitionManager } from '../utils/definitionProcessor.js';
 import { mcpToZod } from '../utils/mcpToZod.js';
 
 // Import HED validation functions
-import { buildSchemasFromVersion } from "hed-validator";
+import { buildSchemasFromVersion, BidsTsvFile } from "hed-validator";
 
 // Define the MCP inputSchema first
 const validateHedTsvInputSchema = {
@@ -61,63 +62,62 @@ export const validateHedTsv: Tool = {
 
 /**
  * Validate a HED TSV file using the specified HED schema version.
- * TODO: Implementation details to be filled in.
  */
 export async function handleValidateHedTsv(args: ValidateHedTsvArgs): Promise<HedValidationResult> {
-  const { filePath, hedVersion, checkForWarnings = false, fileData, jsonData, definitions } = args;
+  const { filePath, hedVersion, checkForWarnings = false, fileData, jsonData, definitions = [] } = args;
 
   try {
     // Use schema cache to get or create the HED schemas
     const hedSchemas = await schemaCache.getOrCreateSchema(hedVersion);
 
+    // Process definitions if provided
+    const definitionResult = createDefinitionManager(definitions, hedSchemas);
+    
+    // If there are errors in definition processing, return them immediately
+    if (definitionResult.errors.length > 0) {
+      return {errors: definitionResult.errors, warnings: checkForWarnings ? definitionResult.warnings : []};
+    }
+    
+    // Store definition warnings to include in final result (already formatted)
+    const definitionWarnings = definitionResult.warnings;
+
     // Get the file data if not provided
     let data = fileData;
     if (data === undefined || data === null || data === '') {
-      try {
         data = await readFileFromPath(filePath);
-      } catch (error) {
-        return {
-          isValid: false,
-          errors: [{
-            code: "INTERNAL_ERROR",
-            detailedCode: "fileReadError",
-            severity: "error",
-            message: `Failed to read file ${filePath}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            line: "",
-            column: "",
-            location: filePath
-          } as FormattedIssue],
-          warnings: []
-        };
-      }
     }
 
-    // TODO: Implement TSV validation logic here
-    // This is a placeholder implementation
-    console.log('TODO: Implement TSV validation logic');
-    console.log('Parameters received:', { filePath, hedVersion, checkForWarnings, jsonData, definitions });
-    console.log('File data type:', typeof data);
+    // Parse JSON data if provided (sidecar data)
+    let parsedJsonData = null;
+    if (jsonData) {
+        parsedJsonData = JSON.parse(jsonData);
+    }
+
+    // Create TSV file object and validate
+    const fileName = path.basename(filePath) || "events.tsv";
+    const tsvFile = new BidsTsvFile(fileName, { path: filePath, name: fileName }, data, parsedJsonData || {}, 
+      definitionResult.definitionManager);
     
-    // Placeholder return - replace with actual validation logic
-    return {
-      isValid: true,
-      errors: [],
-      warnings: []
-    };
+    // Check if the TSV file has HED data to validate
+    if (!tsvFile.hasHedData) {
+      return {errors: [], warnings: []};
+    }
+
+    // Validate the TSV file with the HED schemas
+    const validationIssues = tsvFile.validate(hedSchemas);
+    
+    // Format all validation issues
+    const allFormattedIssues = formatIssues(validationIssues);
+    
+    // Separate issues by severity
+    const { errors: formattedErrors, others: formattedWarnings } = separateIssuesBySeverity(allFormattedIssues);
+    
+    // Combine definition warnings with TSV validation warnings (only if checkForWarnings is true)
+    const finalWarnings = checkForWarnings ? [...definitionWarnings, ...formattedWarnings] : [];
+
+    return {errors: formattedErrors, warnings: finalWarnings };
 
   } catch (error) {
-    return {
-      isValid: false,
-      errors: [{
-        code: "INTERNAL_ERROR",
-        detailedCode: "unExpectedErrorDuringValidation",
-        severity: "error",
-        message: `Validation failed: ${error && typeof error === "object" && "message" in error ? error.message : error instanceof Error ? error.message : 'Unknown error'}`,
-        line: "",
-        column: "",
-        location: ""
-      } as FormattedIssue],
-      warnings: []
-    };
+    return { errors: [formatIssue(error)], warnings: [] };
   }
 }

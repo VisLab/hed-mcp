@@ -1,11 +1,10 @@
 import { 
   convertDefinitions, 
   createDefinitionManager,
-  ConvertDefinitionsResult,
-  CreateDefinitionManagerResult
+  ConvertDefinitionsResult
 } from '../../src/utils/definitionProcessor';
 import { DefinitionManager, buildSchemasFromVersion, Schemas } from 'hed-validator';
-import { FormattedIssue } from '../../src/types/index';
+import { FormattedIssue, DefinitionResult } from '../../src/types/index';
 
 describe('Definition Processor', () => {
   let hedSchemas: Schemas;

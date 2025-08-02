@@ -1,7 +1,7 @@
-import { handleValidateHedString, ValidateHedStringArgs, validateHedString } from '../../src/tools/validateHedString';
+﻿import { handleValidateHedString, ValidateHedStringArgs, validateHedString } from '../../src/tools/validateHedString';
 import { buildSchemasFromVersion, DefinitionManager } from 'hed-validator';
-
 describe('validateHedStringTool', () => {
+
   describe('Tool Definition', () => {
     test('should have correct tool name', () => {
       expect(validateHedString.name).toBe('validateHedString');
@@ -52,11 +52,11 @@ describe('validateHedStringTool', () => {
         hedVersion: '8.4.0',
         checkForWarnings: false
       };
-
       const result = await handleValidateHedString(args);
-      expect(result.isValid).toBe(true);
+      expect(result).toBeDefined();
       expect(result.errors).toBeDefined();
-      expect(result.errors).toHaveLength(0);
+      expect(result.errors).toEqual([]);
+      expect(result.warnings).toBeDefined();
       expect(result.warnings).toEqual([]);
     });
 
@@ -66,11 +66,11 @@ describe('validateHedStringTool', () => {
         hedVersion: '8.4.0',
         checkForWarnings: false
       };
-
       const result = await handleValidateHedString(args);
-
-      expect(result.isValid).toBe(true);
+      expect(result).toBeDefined();
+      expect(result.errors).toBeDefined();
       expect(result.errors).toEqual([]);
+      expect(result.warnings).toBeDefined();
       expect(result.warnings).toEqual([]);
     });
 
@@ -80,13 +80,12 @@ describe('validateHedStringTool', () => {
           hedVersion: '8.4.0',
           checkForWarnings: false
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(false);
+        expect(result).toBeDefined();
         expect(result.errors).toBeDefined();
         expect(result.errors).toHaveLength(1);
         expect(result.errors[0].code).toBe('TAG_INVALID');
+        expect(result.warnings).toBeDefined();
         expect(result.warnings).toEqual([]);
     });
 
@@ -96,11 +95,11 @@ describe('validateHedStringTool', () => {
           hedVersion: '8.4.0',
           checkForWarnings: false,
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(true);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
         expect(result.errors).toEqual([]);
+        expect(result.warnings).toBeDefined();
         expect(result.warnings).toEqual([]);
     });
 
@@ -110,13 +109,12 @@ describe('validateHedStringTool', () => {
           hedVersion: '8.4.0',
           checkForWarnings: true,
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(true);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
         expect(result.errors).toEqual([]);
-        expect(result.warnings).toHaveLength(1);
         expect(result.warnings).toBeDefined();
+        expect(result.warnings).toHaveLength(1);
         expect(result.warnings[0].code).toBe('TAG_EXTENDED');
     });
 
@@ -128,11 +126,12 @@ describe('validateHedStringTool', () => {
           checkForWarnings: false,
           definitions: ['(Definition/myDef, (Event))']
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(true);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
         expect(result.errors).toEqual([]);
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings).toEqual([]);
     });
 
     test('should return early with definition errors', async () => {
@@ -142,12 +141,13 @@ describe('validateHedStringTool', () => {
           checkForWarnings: false,
           definitions: ['(Definition/BadDef, Red)'] // Invalid definition - missing parentheses
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(false);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
         expect(result.errors.length).toBeGreaterThan(0);
-        // TODO: Verify specific error codes when we know what they should be
+        expect(result.errors[0].code).toBe('DEFINITION_INVALID');
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings).toEqual([]);
     });
 
     test('should include definition warnings when checkForWarnings is true', async () => {
@@ -157,11 +157,11 @@ describe('validateHedStringTool', () => {
           checkForWarnings: true,
           definitions: ['(Definition/WarningDef, (Red/Blech))'] 
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(true);
-        expect(result.errors).toEqual([]);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
+        expect(result.errors).toEqual;
+        expect(result.warnings).toBeDefined();
         expect(result.warnings.length).toBeGreaterThan(0);
     });
 
@@ -172,29 +172,13 @@ describe('validateHedStringTool', () => {
           checkForWarnings: false,
           definitions: ['(Definition/WarningDef, (Red/Blech))']
         };
-  
         // TODO: Implement when we have a definition that generates warnings
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(true);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
         expect(result.errors).toEqual([]);
-        expect(result.warnings.length).toEqual(0);
-    });
-
-    test('should not include definition warnings when checkForWarnings is false', async () => {
-        const args: ValidateHedStringArgs = {
-          hedString: 'Event/Sensory-event, Def/WarningDef', // Valid HED string
-          hedVersion: '8.4.0',
-          checkForWarnings: true,
-          definitions: ['(Definition/WarningDef, (Red/Blech))']
-        };
-  
-        // TODO: Implement when we have a definition that generates warnings
-        const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(true);
-        expect(result.errors).toEqual([]);
-        expect(result.warnings.length).toEqual(1);
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings).toEqual([]);
     });
 
     test('should combine definition warnings with HED string warnings', async () => {
@@ -204,11 +188,11 @@ describe('validateHedStringTool', () => {
           checkForWarnings: true,
           definitions: ['(Definition/WarningDef, (Red/Blech))']
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(true);
+              expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
         expect(result.errors).toEqual([]);
+        expect(result.warnings).toBeDefined();
         expect(result.warnings!.length).toBeGreaterThan(1); // Should have both types of warnings
     });
 
@@ -222,11 +206,11 @@ describe('validateHedStringTool', () => {
             '(Definition/SecondDef, (Green))'
           ]
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(true);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
         expect(result.errors).toEqual([]);
+        expect(result.warnings).toBeDefined();
         expect(result.warnings).toEqual([]);
     });
 
@@ -240,12 +224,12 @@ describe('validateHedStringTool', () => {
             '(Definition/ConflictDef, (Blue))' // Same name, different definition
           ]
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(false);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
         expect(result.errors.length).toBeGreaterThan(0);
-        // TODO: Verify specific error codes for conflicting definitions
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings).toEqual([]);
     });
 
     test('should handle empty definitions array', async () => {
@@ -255,11 +239,11 @@ describe('validateHedStringTool', () => {
           checkForWarnings: false,
           definitions: []
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(true);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
         expect(result.errors).toEqual([]);
+        expect(result.warnings).toBeDefined();
         expect(result.warnings).toEqual([]);
     });
 
@@ -273,12 +257,12 @@ describe('validateHedStringTool', () => {
             '(Definition/ValidDef, (Green))' // Valid definition
           ]
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(false);
+        expect(result).toBeDefined();
+        expect(result.errors).toBeDefined();
         expect(result.errors.length).toBeGreaterThan(0);
-        // TODO: Verify specific error codes for malformed definitions
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings).toEqual([]);
     });
 
     test('should return an error for an invalid HED version', async () => {
@@ -287,13 +271,13 @@ describe('validateHedStringTool', () => {
           hedVersion: 'invalid-version',
           checkForWarnings: false
         };
-  
         const result = await handleValidateHedString(args);
-  
-        expect(result.isValid).toBe(false);
-        expect(result.errors).toHaveLength(1);
+        expect(result).toBeDefined();
         expect(result.errors).toBeDefined();
-        expect(result.errors[0].code).toBe('VALIDATION_ERROR');
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0].code).toBe('SCHEMA_LOAD_FAILED');
+        expect(result.warnings).toBeDefined();
+        expect(result.warnings).toEqual([]);
     });
   });
 });

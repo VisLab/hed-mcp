@@ -202,7 +202,7 @@ function formatUnknownIssue(issue: any): FormattedIssue {
     return formatStringIssue(issueAsString);
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : String(e);
-    return formatStringIssue("UNKNOWN: " + errorMessage);
+    return formatStringIssue("INTERNAL_ERROR: " + errorMessage);
   }
 }
 

@@ -16,10 +16,10 @@ import {
   ValidateHedStringArgs 
 } from "./tools/validateHedString.js";
 import {
-  validateHedSidecar,
-  handleValidateHedSidecar,
-  ValidateHedSidecarArgs
-} from "./tools/validateHedSidecar.js";
+  parseHedSidecar,
+  handleParseHedSidecar,
+  ParseHedSidecarArgs
+} from "./tools/parseHedSidecar.js";
 import {
   validateHedTsv,
   handleValidateHedTsv,
@@ -64,7 +64,7 @@ class HEDMCPServer {
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
-        tools: [validateHedString, validateHedSidecar, validateHedTsv],
+        tools: [validateHedString, parseHedSidecar, validateHedTsv],
       };
     });
 
@@ -84,8 +84,8 @@ class HEDMCPServer {
             ],
           };
 
-        case "validateHedSidecar":
-          const sidecarResult = await handleValidateHedSidecar(args as ValidateHedSidecarArgs);
+        case "parseHedSidecar":
+          const sidecarResult = await handleParseHedSidecar(args as ParseHedSidecarArgs);
           return {
             content: [
               {

@@ -1,7 +1,7 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { FormattedIssue, HedValidationResult } from "../types/index.js";
-import { formatIssues, separateIssuesBySeverity } from "../utils/issueFormatter.js";
+import { formatIssue, formatIssues, separateIssuesBySeverity } from "../utils/issueFormatter.js";
 import { schemaCache } from '../utils/schemaCache.js';
 import { createDefinitionManager } from '../utils/definitionProcessor.js';
 import { mcpToZod } from '../utils/mcpToZod.js';
@@ -67,11 +67,7 @@ export async function handleValidateHedString(args: ValidateHedStringArgs): Prom
     
     // If there are errors in definition processing, return them immediately
     if (definitionResult.errors.length > 0) {
-      return {
-        isValid: false,
-        errors: definitionResult.errors,
-        warnings: checkForWarnings ? definitionResult.warnings : []
-      };
+      return {errors: definitionResult.errors, warnings: checkForWarnings ? definitionResult.warnings : []};
     }
     
     const defManager = definitionResult.definitionManager;
@@ -87,30 +83,13 @@ export async function handleValidateHedString(args: ValidateHedStringArgs): Prom
     
     // For HED string validation, errors and warnings come pre-separated from parseStandaloneString
     // But we could also use separateIssuesBySeverity if we had mixed issues
-    const isValid = allErrors.length === 0;
     
     // Combine definition warnings with HED string warnings (only if checkForWarnings is true)
     const finalWarnings = checkForWarnings ? [...definitionWarnings, ...allWarnings] : [];
 
-    return {
-      isValid: isValid,
-      errors: allErrors,
-      warnings: finalWarnings
-    };
+    return { errors: allErrors, warnings: finalWarnings}; 
 
   } catch (error) {
-    return {
-      isValid: false,
-      errors: [{
-        code: "INTERNAL_ERROR",
-        detailedCode: "unExpectedErrorDuringValidation",
-        severity: "error",
-        message: `Validation failed: ${error && typeof error === "object" && "message" in error ? error.message : error instanceof Error ? error.message : 'Unknown error'}`,
-        line: "",
-        column: "",
-        location: ""
-      } as FormattedIssue],
-      warnings: []
-    };
+    return { errors: [formatIssue(error)], warnings: []};
   }
 }

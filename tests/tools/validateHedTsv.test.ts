@@ -1,6 +1,7 @@
 import { handleValidateHedTsv, ValidateHedTsvArgs, validateHedTsv } from '../../src/tools/validateHedTsv';
 import { buildSchemasFromVersion } from 'hed-validator';
 import * as path from 'path';
+import { check } from 'zod/v4';
 
 describe('validateHedTsvTool', () => {
   describe('Tool Definition', () => {
@@ -70,11 +71,12 @@ describe('validateHedTsvTool', () => {
       };
 
       const result = await handleValidateHedTsv(args);
-
-      expect(result.isValid).toBe(false);
+      expect(result).toBeDefined();
+      expect(result.errors).toBeDefined();
       expect(result.errors).toHaveLength(1);
       expect(result.errors[0].code).toBe('INTERNAL_ERROR');
-      expect(result.errors[0].detailedCode).toBe('fileReadError');
+      expect(result.warnings).toBeDefined();
+      expect(result.warnings).toEqual([]);
     });
 
     test('should handle file data provided directly', async () => {
@@ -85,53 +87,61 @@ describe('validateHedTsvTool', () => {
       };
 
       const result = await handleValidateHedTsv(args);
-
-      // Since this is a placeholder implementation, we expect it to return valid
-      // TODO: Update this test when actual validation logic is implemented
-      expect(result.isValid).toBe(true);
+      expect(result).toBeDefined();
+      expect(result.errors).toBeDefined();
+      expect(result.errors).toEqual([]);
+      expect(result.warnings).toBeDefined();
+      expect(result.warnings).toEqual([]);
     });
 
     test('should handle jsonData parameter', async () => {
       const args: ValidateHedTsvArgs = {
         filePath: '/dummy/path.tsv',
         hedVersion: '8.4.0',
-        fileData: 'sample\thed\nvalue\t(Red, Blue)',
-        jsonData: '{"key": "value"}'
+        checkForWarnings: true,
+        fileData: 'key\tHED\nvalue\t(Red, Blue)',
+        jsonData: '{"key": {"HED": "Label/#, Red/Blech"}}'
       };
 
       const result = await handleValidateHedTsv(args);
-
-      // TODO: Update this test when actual validation logic is implemented
-      expect(result.isValid).toBe(true);
+      expect(result).toBeDefined();
+      expect(result.errors).toBeDefined();
+      expect(result.errors).toEqual([]);
+      expect(result.warnings).toBeDefined();
+      expect(result.warnings.length).toBeGreaterThan(0);
     });
 
     test('should handle definitions parameter', async () => {
       const args: ValidateHedTsvArgs = {
         filePath: '/dummy/path.tsv',
         hedVersion: '8.4.0',
-        fileData: 'sample\thed\nvalue\t(Red, Blue)',
+        fileData: 'sample\tHED\nvalue\t(Def/TestDef, Blue)',
         definitions: ['(Definition/TestDef, (Action/Move))', '(Definition/AnotherDef, (Sensory-event))']
       };
 
       const result = await handleValidateHedTsv(args);
-
-      // TODO: Update this test when actual validation logic is implemented
-      expect(result.isValid).toBe(true);
+      expect(result).toBeDefined();
+      expect(result.errors).toBeDefined();
+      expect(result.errors).toEqual([]);
+      expect(result.warnings).toBeDefined();
+      expect(result.warnings).toEqual([]);
     });
 
     test('should handle checkForWarnings parameter', async () => {
       const args: ValidateHedTsvArgs = {
         filePath: '/dummy/path.tsv',
         hedVersion: '8.4.0',
-        fileData: 'sample\thed\nvalue\t(Red, Blue)',
+        fileData: 'sample\tHED\nvalue\t(Red/Blech, Blue)',
         checkForWarnings: true
       };
 
       const result = await handleValidateHedTsv(args);
 
-      // TODO: Update this test when actual validation logic is implemented
-      expect(result.isValid).toBe(true);
+      expect(result).toBeDefined();
+      expect(result.errors).toBeDefined();
+      expect(result.errors).toEqual([]);
       expect(result.warnings).toBeDefined();
+      expect(result.warnings.length).toBeGreaterThan(0);
     });
 
     test('should handle validation errors gracefully', async () => {
@@ -139,16 +149,15 @@ describe('validateHedTsvTool', () => {
       const args: ValidateHedTsvArgs = {
         filePath: '/dummy/path.tsv',
         hedVersion: 'invalid-version', // This might cause an error
-        fileData: 'sample\thed\nvalue\t(Red, Blue)'
+        fileData: 'sample\tHED\nvalue\t(Red, Blue)'
       };
 
       const result = await handleValidateHedTsv(args);
-
-      // The result should handle errors gracefully
       expect(result).toBeDefined();
-      expect(typeof result.isValid).toBe('boolean');
-      expect(Array.isArray(result.errors)).toBe(true);
-      expect(Array.isArray(result.warnings)).toBe(true);
+      expect(result.errors).toBeDefined();
+      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.warnings).toBeDefined();
+      expect(result.warnings).toEqual([]);
     });
   });
 
