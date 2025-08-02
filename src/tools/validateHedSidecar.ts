@@ -5,17 +5,37 @@ import { FormattedIssue, HedValidationResult } from "../types/index.js";
 import { formatIssues, separateIssuesBySeverity } from "../utils/issueFormatter.js";
 import { readFileFromPath } from "../utils/fileReader.js";
 import { schemaCache } from '../utils/schemaCache.js';
+import { mcpToZod } from '../utils/mcpToZod.js';
 
 // Import HED validation functions
 import { buildSchemasFromVersion, BidsSidecar } from "hed-validator";
 
-// Define the schema for the tool's input arguments
-const ValidateHedSidecarSchema = z.object({
-  filePath: z.string().describe("The absolute path to the sidecar file to validate"),
-  hedVersion: z.string().describe("The HED schema version to use (e.g., 8.4.0 or lang_1.1.0, score_2.1.0)"),
-  checkForWarnings: z.boolean().optional().default(false).describe("Whether to check for warnings in addition to errors"),
-  fileData: z.any().optional().describe("Optional file data to use instead of reading from filePath")
-});
+// Define the MCP inputSchema first
+const validateHedSidecarInputSchema = {
+  type: "object" as const,
+  properties: {
+    filePath: {
+      type: "string" as const,
+      description: "The absolute path to the sidecar file to validate"
+    },
+    hedVersion: {
+      type: "string" as const,
+      description: "The HED schema version to use (e.g., 8.4.0 or lang_1.1.0, score_2.1.0)"
+    },
+    checkForWarnings: {
+      type: "boolean" as const,
+      description: "Whether to check for warnings in addition to errors",
+      default: false
+    },
+    fileData: {
+      description: "Optional file data to use instead of reading from filePath"
+    }
+  },
+  required: ["filePath", "hedVersion"]
+};
+
+// Generate Zod schema from MCP schema
+const ValidateHedSidecarSchema = mcpToZod(validateHedSidecarInputSchema);
 
 export type ValidateHedSidecarArgs = z.infer<typeof ValidateHedSidecarSchema>;
 
@@ -25,28 +45,7 @@ export type ValidateHedSidecarArgs = z.infer<typeof ValidateHedSidecarSchema>;
 export const validateHedSidecar: Tool = {
   name: "validateHedSidecar",
   description: "Validates a HED sidecar file using the specified HED schema version",
-  inputSchema: {
-    type: "object",
-    properties: {
-      filePath: {
-        type: "string",
-        description: "The absolute path to the sidecar file to validate"
-      },
-      hedVersion: {
-        type: "string",
-        description: "The HED schema version to use (e.g., 8.4.0 or lang_1.1.0, score_2.1.0)"
-      },
-      checkForWarnings: {
-        type: "boolean",
-        description: "Whether to check for warnings in addition to errors",
-        default: false
-      },
-      fileData: {
-        description: "Optional file data to use instead of reading from filePath",
-      }
-    },
-    required: ["filePath", "hedVersion"]
-  }
+  inputSchema: validateHedSidecarInputSchema
 };
 
 /**
@@ -127,12 +126,11 @@ export async function handleValidateHedSidecar(args: ValidateHedSidecarArgs): Pr
     };
 
   } catch (error) {
-    console.error('HED sidecar validation error:', error);
     return {
       isValid: false,
       errors: [{
-        code: "VALIDATION_ERROR",
-        detailedCode: "VALIDATION_ERROR",
+        code: "INTERNAL_ERROR",
+        detailedCode: "unExpectedErrorDuringValidation",
         severity: "error",
         message: `Validation failed: ${error && typeof error === "object" && "message" in error ? error.message : error instanceof Error ? error.message : 'Unknown error'}`,
         line: "",

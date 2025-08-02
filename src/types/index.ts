@@ -17,7 +17,7 @@ export interface FormattedIssue {
 
 export interface HedValidationResult {
   isValid: boolean;
-  errors?: FormattedIssue[];
-  warnings?: FormattedIssue[];
+  errors: FormattedIssue[];
+  warnings: FormattedIssue[];
   issues?: Array<object | string>;
 }

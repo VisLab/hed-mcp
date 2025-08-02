@@ -32,6 +32,8 @@ export function formatIssue(issue: any): FormattedIssue {
     formattedIssue = formatStringIssue(issue);
   } else if (issue instanceof IssueError) {
     formattedIssue = formatHedIssueError(issue);
+  } else if (issue instanceof Error) {
+    formattedIssue = formatError(issue);
   } else if (issue instanceof BidsHedIssue) {
     formattedIssue = formatBidsHedIssue(issue);
   } else if (issue instanceof Issue) {
@@ -76,6 +78,26 @@ function formatHedIssueError(issue: IssueError): FormattedIssue {
     return formatHedIssue(issue.issue);
   }
   
+  const formattedIssue: FormattedIssue = {
+    code: 'INTERNAL_ERROR',
+    detailedCode: 'INTERNAL_ERROR',
+    severity: 'error',
+    message: String(issue.message) || "Unknown error",
+    column: "",
+    line: "",
+    location: ""
+  };
+  return formattedIssue;
+}
+
+/**
+ * Format an Error into the standardized issue format
+ * 
+ * @param issue - Error object
+ * @returns Formatted issue object
+ */
+function formatError(issue: Error): FormattedIssue {
+ 
   const formattedIssue: FormattedIssue = {
     code: 'INTERNAL_ERROR',
     detailedCode: 'INTERNAL_ERROR',

@@ -85,6 +85,24 @@ describe('issueFormatter', () => {
             }
         });
 
+        it('should format a generic Error object correctly', () => {
+            const error = new Error('This is a generic error message');
+            const issues = [error];
+            const expected: FormattedIssue[] = [
+                {
+                    code: 'INTERNAL_ERROR',
+                    detailedCode: 'INTERNAL_ERROR',
+                    severity: 'error',
+                    message: 'This is a generic error message',
+                    column: '',
+                    line: '',
+                    location: '',
+                },
+            ];
+            const actual = formatIssues(issues);
+            expect(actual).toEqual(expected);
+        });
+
         it('should format a plain object issue correctly', () => {
             const issues = [
                 {

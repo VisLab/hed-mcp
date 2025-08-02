@@ -16,9 +16,9 @@ async function exampleUsage() {
     '(Definition/InvalidDef, Red)' // This will cause an error
   ];
   
-  // Process the definitions
+  // Process the definitions - now synchronous!
   console.log('Processing definitions...');
-  const result = await processDefinitions(definitionStrings, hedSchemas);
+  const result = processDefinitions(definitionStrings, hedSchemas);
   
   console.log('Result:', {
     success: result.success,

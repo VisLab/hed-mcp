@@ -36,11 +36,8 @@ export class SchemaCache {
     
     // Check if schema is already cached
     if (this.cache.has(normalizedVersion)) {
-      console.log(`Using cached HED schema for version ${normalizedVersion}`);
       return this.cache.get(normalizedVersion);
     }
-
-    console.log(`Loading HED schema for version ${normalizedVersion}`);
     
     try {
       // Load the schema using hed-validator with the original version string
@@ -50,7 +47,6 @@ export class SchemaCache {
       // Cache the schema using the normalized version as the key
       this.cache.set(normalizedVersion, hedSchemas);
       
-      console.log(`Successfully cached HED schema for version ${normalizedVersion}`);
       return hedSchemas;
     } catch (error) {
       console.error(`Failed to load HED schema for version ${normalizedVersion}:`, error);
@@ -84,7 +80,6 @@ export class SchemaCache {
    */
   clearCache(): void {
     this.cache.clear();
-    console.log('Schema cache cleared');
   }
 
   /**

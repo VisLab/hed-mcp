@@ -49,7 +49,8 @@ describe('validateHedStringTool', () => {
     test('should return invalid for an empty HED string', async () => {
       const args: ValidateHedStringArgs = {
         hedString: '',
-        hedVersion: '8.4.0'
+        hedVersion: '8.4.0',
+        checkForWarnings: false
       };
 
       const result = await handleValidateHedString(args);
@@ -62,7 +63,8 @@ describe('validateHedStringTool', () => {
     test('should return valid for a simple HED string', async () => {
       const args: ValidateHedStringArgs = {
         hedString: 'Event/Sensory-event',
-        hedVersion: '8.4.0'
+        hedVersion: '8.4.0',
+        checkForWarnings: false
       };
 
       const result = await handleValidateHedString(args);
@@ -75,7 +77,8 @@ describe('validateHedStringTool', () => {
     test('should return an error for an invalid HED string', async () => {
         const args: ValidateHedStringArgs = {
           hedString: 'InvalidTag',
-          hedVersion: '8.4.0'
+          hedVersion: '8.4.0',
+          checkForWarnings: false
         };
   
         const result = await handleValidateHedString(args);
@@ -122,6 +125,7 @@ describe('validateHedStringTool', () => {
         const args: ValidateHedStringArgs = {
           hedString: 'Red, Def/myDef',
           hedVersion: '8.4.0',
+          checkForWarnings: false,
           definitions: ['(Definition/myDef, (Event))']
         };
   
@@ -131,10 +135,157 @@ describe('validateHedStringTool', () => {
         expect(result.errors).toEqual([]);
     });
 
+    test('should return early with definition errors', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Event/Sensory-event', // Valid HED string
+          hedVersion: '8.4.0',
+          checkForWarnings: false,
+          definitions: ['(Definition/BadDef, Red)'] // Invalid definition - missing parentheses
+        };
+  
+        const result = await handleValidateHedString(args);
+  
+        expect(result.isValid).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        // TODO: Verify specific error codes when we know what they should be
+    });
+
+    test('should include definition warnings when checkForWarnings is true', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Event/Sensory-event', // Valid HED string
+          hedVersion: '8.4.0',
+          checkForWarnings: true,
+          definitions: ['(Definition/WarningDef, (Red/Blech))'] 
+        };
+  
+        const result = await handleValidateHedString(args);
+  
+        expect(result.isValid).toBe(true);
+        expect(result.errors).toEqual([]);
+        expect(result.warnings.length).toBeGreaterThan(0);
+    });
+
+    test('should not include definition warnings when checkForWarnings is false', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Event/Sensory-event, Def/WarningDef', // Valid HED string
+          hedVersion: '8.4.0',
+          checkForWarnings: false,
+          definitions: ['(Definition/WarningDef, (Red/Blech))']
+        };
+  
+        // TODO: Implement when we have a definition that generates warnings
+        const result = await handleValidateHedString(args);
+  
+        expect(result.isValid).toBe(true);
+        expect(result.errors).toEqual([]);
+        expect(result.warnings.length).toEqual(0);
+    });
+
+    test('should not include definition warnings when checkForWarnings is false', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Event/Sensory-event, Def/WarningDef', // Valid HED string
+          hedVersion: '8.4.0',
+          checkForWarnings: true,
+          definitions: ['(Definition/WarningDef, (Red/Blech))']
+        };
+  
+        // TODO: Implement when we have a definition that generates warnings
+        const result = await handleValidateHedString(args);
+  
+        expect(result.isValid).toBe(true);
+        expect(result.errors).toEqual([]);
+        expect(result.warnings.length).toEqual(1);
+    });
+
+    test('should combine definition warnings with HED string warnings', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Green/Baloney, Def/WarningDef', // Valid HED string
+          hedVersion: '8.4.0',
+          checkForWarnings: true,
+          definitions: ['(Definition/WarningDef, (Red/Blech))']
+        };
+  
+        const result = await handleValidateHedString(args);
+  
+        expect(result.isValid).toBe(true);
+        expect(result.errors).toEqual([]);
+        expect(result.warnings!.length).toBeGreaterThan(1); // Should have both types of warnings
+    });
+
+    test('should handle multiple valid definitions', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Red, Def/FirstDef, Def/SecondDef',
+          hedVersion: '8.4.0',
+          checkForWarnings: true,
+          definitions: [
+            '(Definition/FirstDef, (Blue))',
+            '(Definition/SecondDef, (Green))'
+          ]
+        };
+  
+        const result = await handleValidateHedString(args);
+  
+        expect(result.isValid).toBe(true);
+        expect(result.errors).toEqual([]);
+        expect(result.warnings).toEqual([]);
+    });
+
+    test('should handle conflicting definitions', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Event/Sensory-event', // Valid HED string 
+          hedVersion: '8.4.0',
+          checkForWarnings: false,
+          definitions: [
+            '(Definition/ConflictDef, (Red))',
+            '(Definition/ConflictDef, (Blue))' // Same name, different definition
+          ]
+        };
+  
+        const result = await handleValidateHedString(args);
+  
+        expect(result.isValid).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        // TODO: Verify specific error codes for conflicting definitions
+    });
+
+    test('should handle empty definitions array', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Event/Sensory-event',
+          hedVersion: '8.4.0',
+          checkForWarnings: false,
+          definitions: []
+        };
+  
+        const result = await handleValidateHedString(args);
+  
+        expect(result.isValid).toBe(true);
+        expect(result.errors).toEqual([]);
+        expect(result.warnings).toEqual([]);
+    });
+
+    test('should handle malformed definition strings', async () => {
+        const args: ValidateHedStringArgs = {
+          hedString: 'Event/Sensory-event', // Valid HED string
+          hedVersion: '8.4.0',
+          checkForWarnings: false,
+          definitions: [
+            'Not a definition at all',
+            '(Definition/ValidDef, (Green))' // Valid definition
+          ]
+        };
+  
+        const result = await handleValidateHedString(args);
+  
+        expect(result.isValid).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        // TODO: Verify specific error codes for malformed definitions
+    });
+
     test('should return an error for an invalid HED version', async () => {
         const args: ValidateHedStringArgs = {
           hedString: 'Event',
-          hedVersion: 'invalid-version'
+          hedVersion: 'invalid-version',
+          checkForWarnings: false
         };
   
         const result = await handleValidateHedString(args);
