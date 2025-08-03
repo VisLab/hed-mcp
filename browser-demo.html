@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HED Validation - Browser Demo</title>
+</head>
+<body>
+    <h1>🧠 HED Validation Browser Demo</h1>
+    
+    <p>This page demonstrates how to use HED validation in a browser environment. 
+    The validator will attempt to connect to a local HED server, but falls back to mock validation if not available.</p>
+    
+    <!-- Simple validation form will be inserted here -->
+    <div id="validator-container"></div>
+    
+    <hr>
+    
+    <h2>📝 Manual Testing</h2>
+    <div style="display: flex; gap: 20px; margin-top: 20px;">
+        <div style="flex: 1;">
+            <h3>Test Examples</h3>
+            <button onclick="testValidString()">Test Valid String</button><br><br>
+            <button onclick="testInvalidString()">Test Invalid String</button><br><br>
+            <button onclick="testWarningString()">Test String with Warnings</button><br><br>
+            <button onclick="testTsvData()">Test TSV Data</button><br><br>
+            <button onclick="testSidecarData()">Test Sidecar JSON</button>
+        </div>
+        
+        <div style="flex: 2;">
+            <h3>Results</h3>
+            <div id="test-results" style="background-color: #f5f5f5; padding: 15px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; min-height: 200px;">
+                Click a test button to see results here...
+            </div>
+        </div>
+    </div>
+    
+    <hr>
+    
+    <h2>🛠 Integration Guide</h2>
+    <p>To use HED validation in your own web application:</p>
+    
+    <h3>1. Include the browser client script:</h3>
+    <pre><code>&lt;script src="browser-client.js"&gt;&lt;/script&gt;</code></pre>
+    
+    <h3>2. Create a validation client:</h3>
+    <pre><code>const hedClient = new HEDBrowserClient('/api/hed');
+
+// Validate a HED string
+const result = await hedClient.validateHedString(
+    'Event/Sensory-event, Red, Blue',
+    '8.4.0',
+    { checkForWarnings: true }
+);
+
+console.log('Validation result:', result);</code></pre>
+    
+    <h3>3. Or use the utility to create a form:</h3>
+    <pre><code>// This creates a complete validation form in the specified container
+HEDUtils.createValidationForm('my-container-id');</code></pre>
+    
+    <h3>4. Server Setup (Optional)</h3>
+    <p>For full validation capabilities, run the HED HTTP server:</p>
+    <pre><code># Install additional dependencies for HTTP server
+npm install express cors @types/express @types/cors
+
+# Build and run HTTP server
+npm run build
+node dist/http-server.js
+
+# Server will be available at http://localhost:3000</code></pre>
+    
+    <!-- Load the browser client -->
+    <script src="browser-client.js"></script>
+    
+    <script>
+        // Create the validation form
+        const client = HEDUtils.createValidationForm('validator-container');
+        
+        // Test functions for manual testing
+        async function testValidString() {
+            const result = await client.validateHedString(
+                'Event/Sensory-event, Red, Blue',
+                '8.4.0',
+                { checkForWarnings: true }
+            );
+            
+            document.getElementById('test-results').textContent = 
+                'Valid HED String Test:\n' + HEDUtils.formatResults(result);
+        }
+        
+        async function testInvalidString() {
+            const result = await client.validateHedString(
+                'InvalidTag, AnotherInvalidTag',
+                '8.4.0',
+                { checkForWarnings: true }
+            );
+            
+            document.getElementById('test-results').textContent = 
+                'Invalid HED String Test:\n' + HEDUtils.formatResults(result);
+        }
+        
+        async function testWarningString() {
+            const result = await client.validateHedString(
+                'Event, Item/MyCustomObject',
+                '8.4.0',
+                { checkForWarnings: true }
+            );
+            
+            document.getElementById('test-results').textContent = 
+                'Warning HED String Test:\n' + HEDUtils.formatResults(result);
+        }
+        
+        async function testTsvData() {
+            const tsvData = `onset	duration	trial_type	HED
+1.0	2.0	go	Event/Sensory-event, Red
+3.0	2.0	stop	InvalidTag
+5.0	2.0	neutral	Event/Sensory-event, Blue`;
+            
+            const result = await client.validateHedTsv(
+                tsvData,
+                '8.4.0',
+                { checkForWarnings: true }
+            );
+            
+            document.getElementById('test-results').textContent = 
+                'TSV Data Test:\n' + HEDUtils.formatResults(result);
+        }
+        
+        async function testSidecarData() {
+            const jsonData = `{
+  "trial_type": {
+    "go": {"HED": "Event/Sensory-event, Green"},
+    "stop": {"HED": "InvalidTag"},
+    "neutral": {"HED": "Event/Sensory-event, Blue"}
+  }
+}`;
+            
+            const result = await client.parseHedSidecar(
+                jsonData,
+                '8.4.0',
+                { checkForWarnings: true }
+            );
+            
+            document.getElementById('test-results').textContent = 
+                'Sidecar JSON Test:\n' + HEDUtils.formatResults(result);
+        }
+        
+        // Check server availability on page load
+        window.addEventListener('load', async () => {
+            await client.checkAvailability();
+            
+            const statusMessage = client.isAvailable 
+                ? '✅ HED server is available - using full validation'
+                : '⚠️ HED server not available - using mock validation';
+            
+            console.log(statusMessage);
+            
+            // Add status indicator to page
+            const statusDiv = document.createElement('div');
+            statusDiv.style.cssText = 'padding: 10px; margin: 10px 0; border-radius: 4px; font-weight: bold;';
+            statusDiv.style.backgroundColor = client.isAvailable ? '#d4edda' : '#fff3cd';
+            statusDiv.style.color = client.isAvailable ? '#155724' : '#856404';
+            statusDiv.textContent = statusMessage;
+            
+            document.body.insertBefore(statusDiv, document.body.firstChild);
+        });
+    </script>
+</body>
+</html>
