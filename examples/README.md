@@ -4,7 +4,15 @@ This directory contains various examples and tools for working with the HED MCP 
 
 ## 📁 Files Overview
 
-### Browser-Based Examples
+### Browser-based examples
+```javascript
+const validator = new HEDValidatorClient({
+    serverEndpoint: '/api',          // API endpoint base path
+    timeout: 10000,                  // Request timeout in ms
+    retries: 3,                      // Number of retry attempts
+    fallbackToMock: true             // Use mock if server fails
+});
+```es
 - **`hed-validator.html`** - Full-featured browser interface for HED validation
 - **`hed-demo.html`** - Interactive demo and integration guide  
 - **`hed-validator-client.js`** - Modern browser client for HED validation
@@ -82,6 +90,14 @@ if (result.isValid) {
 
 ## 🔌 MCP Integration Examples
 
+The HED MCP server provides 4 tools through the Model Context Protocol:
+
+### Available Tools
+1. **validateHedString** - Validate individual HED strings with syntax checking
+2. **validateHedSidecar** - Validate BIDS sidecar JSON files with HED annotations  
+3. **validateHedTsv** - Validate TSV files with associated sidecar data
+4. **getFileFromPath** - Read file content from the local filesystem
+
 ### Interactive MCP Client (`mcp-client.js`)
 
 Demonstrates the full MCP protocol workflow:
@@ -89,7 +105,7 @@ Demonstrates the full MCP protocol workflow:
 - **Server Connection** - Connect to HED MCP server via stdio
 - **Tool Discovery** - List available validation tools  
 - **Resource Access** - Access HED schema resources
-- **Validation Testing** - Test all 4 validation tools
+- **Validation Testing** - Test all 3 validation tools plus file access
 - **Error Scenarios** - Handle validation failures gracefully
 
 **Usage:**
@@ -101,7 +117,11 @@ node examples/mcp-client.js
 # 🧠 HED MCP Client Demo
 # 📡 Connecting to MCP server...
 # ✅ Connected to server successfully!
-# 🔍 Found 4 available tools
+# ✅ Found 4 available tools:
+#   - validateHedString: Validate HED string
+#   - validateHedSidecar: Validate HED sidecar  
+#   - validateHedTsv: Validate HED TSV
+#   - getFileFromPath: Get file content from path
 # ...
 ```
 
@@ -175,17 +195,19 @@ For simple browser-based validation:
 
 ### 2. Server-Enabled Setup
 
-For full validation with the HED server:
+For full validation with the HED HTTP server:
 
 ```bash
-# 1. Start the HED HTTP server
+# 1. Build the project
 npm run build
-node dist/http-server.js
 
-# 2. Serve the browser files
+# 2. Start the HED HTTP server
+node dist/examples/http-server.js
+
+# 3. Serve the browser files
 npx serve examples/
 
-# 3. Open http://localhost:3000/hed-validator.html
+# 4. Open http://localhost:3000/hed-validator.html
 ```
 
 ### 3. MCP Integration
@@ -259,12 +281,17 @@ const validator = new HEDValidatorClient({
 
 ### Server Configuration
 
-The browser examples work with the HED HTTP server configured in `src/http-server.ts`:
+The browser examples work with the HED HTTP server configured in `examples/http-server.ts`:
 
 ```typescript
-// Server runs on http://localhost:3000
-// API endpoints: /api/hed/validate/{string|tsv|sidecar}
-// Health check: /api/hed/health
+// Server runs on http://localhost:3000 by default
+// API endpoints available:
+//   POST /api/file                - Get file content from path
+//   POST /api/validate/string     - Validate HED string  
+//   POST /api/validate/tsv        - Validate TSV file data
+//   POST /api/validate/sidecar    - Validate sidecar JSON data
+// Health check: GET /health
+// API info: GET /api
 ```
 
 ---
@@ -274,7 +301,7 @@ The browser examples work with the HED HTTP server configured in `src/http-serve
 ### Common Issues
 
 1. **"Server not available" message**
-   - Ensure HTTP server is running: `node dist/http-server.js`
+   - Ensure HTTP server is running: `node dist/examples/http-server.js`
    - Check server endpoint configuration
    - Verify CORS settings for cross-origin requests
 
@@ -309,9 +336,9 @@ const validator = new HEDValidatorClient({ debug: true });
 
 ## 📚 Additional Resources
 
-- **[HED Documentation](https://www.hedtags.org/)** - Official HED specification
-- **[MCP Protocol](https://modelcontextprotocol.io/)** - Model Context Protocol specification  
-- **[BIDS](https://bids.neuroimaging.io/)** - Brain Imaging Data Structure standard
-- **[Project README](../README.md)** - Main project documentation
+- **[HED homepage](https://www.hedtags.org/)**
+- **[MCP Protocol specification](https://modelcontextprotocol.io/)** 
+- **[BIDS (Brain Imaging Data Structure standard)](https://bids.neuroimaging.io/)
+- **[Project README](../README.md)**
 
 For questions and support, please refer to the main project documentation or create an issue in the repository.

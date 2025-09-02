@@ -15,7 +15,7 @@
 
 class HEDValidatorClient {
     constructor(options = {}) {
-        this.serverEndpoint = options.serverEndpoint || '/api/hed';
+        this.serverEndpoint = options.serverEndpoint || '/api';
         this.timeout = options.timeout || 10000;
         this.isServerAvailable = false;
         this.initialized = false;
@@ -31,7 +31,7 @@ class HEDValidatorClient {
         if (this.initialized) return;
         
         try {
-            const response = await fetch(`${this.serverEndpoint}/health`, {
+            const response = await fetch('/health', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
                 signal: AbortSignal.timeout(this.timeout)

@@ -143,7 +143,6 @@ npx @modelcontextprotocol/inspector node dist/server.js
 ```
 HED MCP Server (src)
 ├── server.ts              # Main MCP server (stdio/WebSocket modes)
-├── http-server.ts         # HTTP REST API server
 ├── tools/                 # Validation functions
 │   ├── validateHedString.ts
 │   ├── validateHedTsv.ts
@@ -158,6 +157,13 @@ HED MCP Server (src)
 │   ├── issueFormatter.ts
 │   └── mcpToZod.ts
 └── types/                 # TypeScript definitions
+
+Examples (examples/)
+├── http-server.ts         # HTTP REST API server example
+├── hed-validator.html     # Browser validation interface
+├── hed-demo.html         # Interactive demo and guide
+├── mcp-client.js         # MCP protocol client example
+└── ...                   # Additional examples and utilities
     └── index.ts
 ```
 
@@ -550,7 +556,7 @@ For complete server-based validation, run the HTTP API server:
 
 ```bash
 npm run build
-node dist/http-server.js
+node dist/examples/http-server.js
 ```
 
 The browser client automatically detects and uses the server at `http://localhost:3000/api/hed/`.
@@ -922,7 +928,6 @@ echo "Dataset validation complete!"
 ```
 src/
 ├── server.ts              # Main MCP server (stdio/WebSocket)
-├── http-server.ts         # HTTP REST API server
 ├── tools/                 # MCP tools (validation functions)
 │   ├── validateHedString.ts
 │   ├── validateHedTsv.ts
