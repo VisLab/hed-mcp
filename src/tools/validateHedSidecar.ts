@@ -27,9 +27,10 @@ const validateHedSidecarInputSchema = {
       description: "Whether to check for warnings in addition to errors",
       default: false
     },
-    fileData: {
+    jsonData: {
       type: "string" as const,
-      description: "Optional JSON string containing the sidecar data to use instead of reading from filePath"
+      description: "Optional JSON string containing the sidecar data to use instead of reading from filePath",
+      default: ""
     }
   },
   required: ["filePath", "hedVersion"]
@@ -53,23 +54,23 @@ export const validateHedSidecar: Tool = {
  * Validate a HED sidecar file using the specified HED schema version.
  */
 export async function handleValidateHedSidecar(args: ValidateHedSidecarArgs): Promise<ValidateHedSidecarResult> {
-  const { filePath, hedVersion, checkForWarnings = false, fileData } = args;
+  const { filePath, hedVersion, checkForWarnings = false, jsonData='' } = args;
 
   try {
     // Use schema cache to get or create the HED schemas
     const hedSchemas = await schemaCache.getOrCreateSchema(hedVersion);
 
     // Get the file data if not provided
-    let data = fileData;
+    let data = jsonData;
     if (!data) {
         data = await readFileFromPath(filePath);
     }
 
-    // Parse JSON data (fileData is always a string now)
-    const jsonData = JSON.parse(data);
+    // Parse JSON data (jsonData is always a string now)
+    const jsonObject = JSON.parse(data);
    
     const fileName = path.basename(filePath) || "sidecar.json"; // Properly extract filename using path.basename
-    const sidecar = new BidsSidecar(fileName, { path: filePath, name: fileName }, jsonData);
+    const sidecar = new BidsSidecar(fileName, { path: filePath, name: fileName }, jsonObject);
     const validationIssues = sidecar.validate(hedSchemas);
     
     // Format all validation issues
@@ -82,7 +83,7 @@ export async function handleValidateHedSidecar(args: ValidateHedSidecarArgs): Pr
     const finalWarnings = checkForWarnings ? formattedWarnings : [];
 
     return {
-      parsedHedSidecar: JSON.stringify(jsonData),
+      parsedHedSidecar: JSON.stringify(jsonObject),
       errors: formattedErrors,
       warnings: finalWarnings
     };

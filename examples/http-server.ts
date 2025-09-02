@@ -1,19 +1,58 @@
 #!/usr/bin/env node
 
+/**
+ * HED HTTP REST API Server Example
+ * 
+ * This is an example implementation of an HTTP REST API server that provides
+ * endpoints for HED (Hierarchical Event Descriptor) validation. It demonstrates
+ * how to create a web service that allows browser applications and other HTTP
+ * clients to validate HED strings, TSV files, and sidecar JSON files.
+ * 
+ * Features:
+ * - CORS-enabled endpoints for browser compatibility
+ * - JSON and form-data request parsing
+ * - Comprehensive error handling and validation
+ * - Health check and API documentation endpoints
+ * - Support for all HED validation types (string, TSV, sidecar)
+ * 
+ * Usage:
+ *   npm run build
+ *   node examples/http-server.js
+ * 
+ * The server will start on http://localhost:3000 by default.
+ * You can set the PORT environment variable to use a different port.
+ * 
+ * API Endpoints:
+ *   GET  /health                  - Health check
+ *   GET  /api                     - API information and documentation
+ *   POST /api/file                - Get file content from path
+ *   POST /api/validate/string     - Validate a HED string
+ *   POST /api/validate/tsv        - Validate TSV file data
+ *   POST /api/validate/sidecar    - Validate sidecar JSON data
+ * 
+ * @author HED-MCP Development Team
+ * @version 1.0.0
+ * @license MIT
+ */
+
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { 
   handleValidateHedString,
   ValidateHedStringArgs 
-} from "./tools/validateHedString.js";
+} from "../src/tools/validateHedString.js";
 import {
   handleValidateHedSidecar,
   ValidateHedSidecarArgs
-} from "./tools/validateHedSidecar.js";
+} from "../src/tools/validateHedSidecar.js";
 import {
   handleValidateHedTsv,
   ValidateHedTsvArgs
-} from "./tools/validateHedTsv.js";
+} from "../src/tools/validateHedTsv.js";
+import {
+  handleGetFileFromPath,
+  GetFileFromPathArgs
+} from "../src/tools/getFileFromPath.js";
 
 /**
  * HTTP REST API server for HED validation
@@ -70,12 +109,42 @@ class HEDHttpServer {
         endpoints: {
           'GET /health': 'Health check',
           'GET /api': 'API information',
+          'POST /api/file': 'Get file content from path',
           'POST /api/validate/string': 'Validate HED string',
           'POST /api/validate/tsv': 'Validate TSV file data',
           'POST /api/validate/sidecar': 'Parse and validate sidecar JSON'
         },
         documentation: 'https://github.com/VisLab/hed-mcp-typescript'
       });
+    });
+
+    // Get file content from path
+    this.app.post('/api/file', async (req: Request, res: Response) => {
+      try {
+        const args: GetFileFromPathArgs = {
+          filePath: req.body.filePath
+        };
+
+        // Validate required parameters
+        if (!args.filePath) {
+          return res.status(400).json({
+            error: 'Missing required parameters',
+            required: ['filePath']
+          });
+        }
+
+        const fileContent = await handleGetFileFromPath(args);
+        res.json({
+          filePath: args.filePath,
+          content: fileContent
+        });
+      } catch (error) {
+        console.error('File retrieval error:', error);
+        res.status(500).json({
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
     });
 
     // Validate HED string
@@ -114,16 +183,16 @@ class HEDHttpServer {
           filePath: req.body.filePath || '/virtual/data.tsv',
           hedVersion: req.body.hedVersion,
           checkForWarnings: req.body.checkForWarnings || false,
-          fileData: req.body.fileData || req.body.tsvData,
-          jsonData: req.body.jsonData || req.body.sidecarData,
+          fileData: req.body.fileData || '',
+          jsonData: req.body.jsonData || '',
           definitions: req.body.definitions || []
         };
 
         // Validate required parameters
-        if (!args.hedVersion || (!args.fileData && !req.body.tsvData)) {
+        if (!args.hedVersion) {
           return res.status(400).json({
             error: 'Missing required parameters',
-            required: ['hedVersion', 'fileData or tsvData']
+            required: ['hedVersion']
           });
         }
 
@@ -145,14 +214,14 @@ class HEDHttpServer {
           filePath: req.body.filePath || '/virtual/sidecar.json',
           hedVersion: req.body.hedVersion,
           checkForWarnings: req.body.checkForWarnings || false,
-          fileData: req.body.fileData || req.body.jsonData
+          jsonData: req.body.jsonData || req.body.fileData || ''
         };
 
         // Validate required parameters
-        if (!args.hedVersion || (!args.fileData && !req.body.jsonData)) {
+        if (!args.hedVersion) {
           return res.status(400).json({
             error: 'Missing required parameters',
-            required: ['hedVersion', 'fileData or jsonData']
+            required: ['hedVersion']
           });
         }
 
@@ -189,7 +258,8 @@ class HEDHttpServer {
         message: `Endpoint ${req.method} ${req.path} not found`,
         available: [
           'GET /health',
-          'GET /api', 
+          'GET /api',
+          'POST /api/file',
           'POST /api/validate/string',
           'POST /api/validate/tsv',
           'POST /api/validate/sidecar'

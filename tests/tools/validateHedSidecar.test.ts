@@ -38,21 +38,21 @@ describe('validateHedSidecarTool', () => {
       expect(validateHedSidecar.inputSchema.required).not.toContain('checkForWarnings');
     });
 
-    test('should have optional fileData parameter', () => {
+    test('should have optional jsonData parameter', () => {
       if (validateHedSidecar.inputSchema.properties) {
-        expect(validateHedSidecar.inputSchema.properties.fileData).toBeDefined();
+        expect(validateHedSidecar.inputSchema.properties.jsonData).toBeDefined();
       }
-      expect(validateHedSidecar.inputSchema.required).not.toContain('fileData');
+      expect(validateHedSidecar.inputSchema.required).not.toContain('jsonData');
     });
   });
 
   describe('Handler Function', () => {
-    test('should handle valid inputs with provided fileData', async () => {
+    test('should handle valid inputs with provided jsonData', async () => {
       const args: ValidateHedSidecarArgs = {
         filePath: '/path/to/test.json',
         hedVersion: '8.4.0',
         checkForWarnings: false,
-        fileData: '{"response": {"HED": "Label/#, Red/Blech"}}' // Example valid JSON data
+        jsonData: '{"response": {"HED": "Label/#, Red/Blech"}}' // Example valid JSON data
       };
 
       const result = await handleValidateHedSidecar(args);
@@ -64,7 +64,7 @@ describe('validateHedSidecarTool', () => {
       expect(typeof result.parsedHedSidecar).toBe('string');
     });
 
-    test('should handle bad file reading when fileData is not provided', async () => {
+    test('should handle bad file reading when jsonData is not provided', async () => {
       const args: ValidateHedSidecarArgs = {
         filePath: '/path/to/non-existent.json',
         hedVersion: '8.4.0',
@@ -80,12 +80,12 @@ describe('validateHedSidecarTool', () => {
       expect(result.errors[0].severity).toBe('error');
     });
 
-    test('should handle checkForWarnings parameter with fileData', async () => {
+    test('should handle checkForWarnings parameter with jsonData', async () => {
       const args: ValidateHedSidecarArgs = {
         filePath: '/path/to/test.json',
         hedVersion: '8.4.0',
         checkForWarnings: true,
-        fileData:  '{"response": {"HED": "Label/#, Red/Blech"}}' // Example valid JSON data
+        jsonData:  '{"response": {"HED": "Label/#, Red/Blech"}}' // Example valid JSON data
       };
 
       const result = await handleValidateHedSidecar(args);
@@ -95,12 +95,12 @@ describe('validateHedSidecarTool', () => {
       expect(result.warnings.length).toBeGreaterThan(0);
     });
 
-    test('should handle invalid JSON string in fileData parameter', async () => {
+    test('should handle invalid JSON string in jsonData parameter', async () => {
       const args: ValidateHedSidecarArgs = {
         filePath: '/path/to/test.json',
         hedVersion: '8.4.0',
         checkForWarnings: false,
-        fileData: 'invalid json content' // Invalid JSON string
+        jsonData: 'invalid json content' // Invalid JSON string
       };
 
       const result = await handleValidateHedSidecar(args);
@@ -116,7 +116,7 @@ describe('validateHedSidecarTool', () => {
         filePath: '/path/to/test.json',
         hedVersion: '8.4.0',
         checkForWarnings: false,
-        fileData: 'invalid json content'
+        jsonData: 'invalid json content'
       };
 
       const result = await handleValidateHedSidecar(args);

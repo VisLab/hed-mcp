@@ -74,10 +74,12 @@ class HEDValidatorClient {
         await this.initialize();
         
         const params = {
-            tsvData: tsvData.trim(),
+            filePath: options.filePath || '/virtual/data.tsv',
             hedVersion: options.hedVersion || '8.4.0',
             checkForWarnings: options.checkForWarnings || false,
-            sidecarData: options.sidecarData || null
+            fileData: tsvData.trim(),
+            jsonData: options.jsonData || null,
+            definitions: options.definitions || []
         };
 
         if (this.isServerAvailable) {
@@ -94,15 +96,48 @@ class HEDValidatorClient {
         await this.initialize();
         
         const params = {
-            jsonData: jsonData.trim(),
+            filePath: options.filePath || '/virtual/sidecar.json',
             hedVersion: options.hedVersion || '8.4.0',
-            checkForWarnings: options.checkForWarnings || false
+            checkForWarnings: options.checkForWarnings || false,
+            fileData: jsonData.trim()
         };
 
         if (this.isServerAvailable) {
             return await this.callServer('validate/sidecar', params);
         } else {
             return this.mockValidateSidecar(params);
+        }
+    }
+
+    /**
+     * Get file contents from path
+     */
+    async getFileFromPath(filePath) {
+        await this.initialize();
+        
+        const params = { filePath: filePath };
+
+        if (this.isServerAvailable) {
+            // For HTTP server, we'll need to add this endpoint
+            try {
+                const response = await fetch(`${this.serverEndpoint}/file`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(params),
+                    signal: AbortSignal.timeout(this.timeout)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.text();
+            } catch (error) {
+                console.warn('File reading not available via HTTP server:', error.message);
+                throw new Error('File reading not available in browser environment');
+            }
+        } else {
+            throw new Error('File reading requires server connection');
         }
     }
 
@@ -163,7 +198,10 @@ class HEDValidatorClient {
         };
     }
 
-    mockValidateTsv({ tsvData, hedVersion, checkForWarnings, sidecarData }) {
+    mockValidateTsv({ filePath, hedVersion, checkForWarnings, fileData, jsonData, definitions }) {
+        const tsvData = fileData;
+        const sidecarData = jsonData;
+        
         const lines = tsvData.trim().split('\n');
         if (lines.length === 0) {
             return { isValid: false, errors: [{ code: 'EMPTY_FILE', message: 'TSV data is empty' }] };
@@ -195,7 +233,7 @@ class HEDValidatorClient {
                     hedString,
                     hedVersion,
                     checkForWarnings,
-                    definitions: []
+                    definitions: definitions || []
                 });
                 
                 errors.push(...result.errors.map(e => ({ ...e, line: i + 1, row: i })));
@@ -213,7 +251,9 @@ class HEDValidatorClient {
         };
     }
 
-    mockValidateSidecar({ jsonData, hedVersion, checkForWarnings }) {
+    mockValidateSidecar({ filePath, hedVersion, checkForWarnings, fileData }) {
+        const jsonData = fileData;
+        
         const errors = [];
         const warnings = [];
 
