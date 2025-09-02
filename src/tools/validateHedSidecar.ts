@@ -1,7 +1,7 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import * as path from "path";
-import { FormattedIssue, ParseHedSidecarResult } from "../types/index.js";
+import { FormattedIssue, ValidateHedSidecarResult } from "../types/index.js";
 import { formatIssue, formatIssues, separateIssuesBySeverity } from "../utils/issueFormatter.js";
 import { readFileFromPath } from "../utils/fileReader.js";
 import { schemaCache } from '../utils/schemaCache.js';
@@ -11,12 +11,12 @@ import { mcpToZod } from '../utils/mcpToZod.js';
 import { buildSchemasFromVersion, BidsSidecar } from "hed-validator";
 
 // Define the MCP inputSchema first
-const parseHedSidecarInputSchema = {
+const validateHedSidecarInputSchema = {
   type: "object" as const,
   properties: {
     filePath: {
       type: "string" as const,
-      description: "The absolute path to the sidecar file to parse"
+      description: "The absolute path to the sidecar file to validate"
     },
     hedVersion: {
       type: "string" as const,
@@ -36,23 +36,23 @@ const parseHedSidecarInputSchema = {
 };
 
 // Generate Zod schema from MCP schema
-const ParseHedSidecarSchema = mcpToZod(parseHedSidecarInputSchema);
+const ValidateHedSidecarSchema = mcpToZod(validateHedSidecarInputSchema);
 
-export type ParseHedSidecarArgs = z.infer<typeof ParseHedSidecarSchema>;
+export type ValidateHedSidecarArgs = z.infer<typeof ValidateHedSidecarSchema>;
 
 /**
- * Tool definition for parsing HED sidecar files
+ * Tool definition for validating HED sidecar files
  */
-export const parseHedSidecar: Tool = {
-  name: "parseHedSidecar",
-  description: "Parses a HED sidecar file using the specified HED schema version",
-  inputSchema: parseHedSidecarInputSchema
+export const validateHedSidecar: Tool = {
+  name: "validateHedSidecar",
+  description: "Validates a HED sidecar file using the specified HED schema version",
+  inputSchema: validateHedSidecarInputSchema
 };
 
 /**
- * Parse a HED sidecar file using the specified HED schema version.
+ * Validate a HED sidecar file using the specified HED schema version.
  */
-export async function handleParseHedSidecar(args: ParseHedSidecarArgs): Promise<ParseHedSidecarResult> {
+export async function handleValidateHedSidecar(args: ValidateHedSidecarArgs): Promise<ValidateHedSidecarResult> {
   const { filePath, hedVersion, checkForWarnings = false, fileData } = args;
 
   try {

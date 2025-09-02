@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HED Validator - Browser Interface</title>
+    <link rel="stylesheet" href="hed-validator.css">
+    <meta name="description" content="Browser-based HED (Hierarchical Event Descriptors) validation tool for neuroscience research data">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🧠 HED Validator</h1>
+            <div class="subtitle">Browser-based validation for Hierarchical Event Descriptors</div>
+        </div>
+
+        <!-- Status Bar -->
+        <div id="status-bar" class="status-bar">
+            <div class="spinner"></div>
+            <span>Initializing validator...</span>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- HED String Validation -->
+            <section class="tool-section">
+                <div class="tool-header">
+                    🔍 HED String Validation
+                </div>
+                <div class="tool-body">
+                    <div class="examples">
+                        <div class="examples-title">Example HED Strings:</div>
+                        <div class="example-item">✓ Valid: Event/Sensory-event, Red, Blue</div>
+                        <div class="example-item">✓ With grouping: (Event/Sensory-event, (Red, Large))</div>
+                        <div class="example-item">✗ Invalid: InvalidTag, AnotherInvalidTag</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hed-string">HED String:</label>
+                        <textarea id="hed-string" 
+                                  placeholder="Enter HED string to validate..." 
+                                  aria-describedby="hed-string-help">Event/Sensory-event, Red, Blue</textarea>
+                        <div class="help-text" id="hed-string-help">
+                            Enter a HED string using comma-separated tags. Use parentheses for grouping.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hed-version-1">HED Schema Version:</label>
+                        <select id="hed-version-1" aria-describedby="version-help">
+                            <option value="8.4.0">8.4.0 (Latest Standard)</option>
+                            <option value="8.3.0">8.3.0 (Standard)</option>
+                            <option value="8.2.0">8.2.0 (Standard)</option>
+                            <option value="lang_1.1.0">8.4.0 + Language Library</option>
+                            <option value="score_2.1.0">8.4.0 + Score Library</option>
+                        </select>
+                        <div class="help-text" id="version-help">
+                            Select the HED schema version for validation. Libraries extend the standard schema.
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="warnings-1">
+                        <label for="warnings-1">Check for warnings</label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="definitions-1">Definitions (optional):</label>
+                        <textarea id="definitions-1" 
+                                  placeholder="(Definition/MyDef, (Red, Blue))&#10;(Definition/AnotherDef, (Event))"
+                                  rows="3"></textarea>
+                        <div class="help-text">
+                            Enter HED definitions, one per line. These will be used during validation.
+                        </div>
+                    </div>
+
+                    <button id="validate-string-btn" class="btn">
+                        <span>🔍</span> Validate HED String
+                    </button>
+
+                    <div id="string-results" class="results"></div>
+                </div>
+            </section>
+
+            <!-- TSV File Validation -->
+            <section class="tool-section">
+                <div class="tool-header">
+                    📊 TSV File Validation
+                </div>
+                <div class="tool-body">
+                    <div class="examples">
+                        <div class="examples-title">TSV Format Example:</div>
+                        <div class="example-item">onset&nbsp;&nbsp;&nbsp;&nbsp;duration&nbsp;&nbsp;&nbsp;&nbsp;trial_type&nbsp;&nbsp;&nbsp;&nbsp;HED</div>
+                        <div class="example-item">1.0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;go&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Event/Sensory-event, Red</div>
+                        <div class="example-item">3.0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stop&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Event/Sensory-event, Blue</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tsv-data">TSV File Content:</label>
+                        <textarea id="tsv-data" 
+                                  placeholder="Paste TSV content here..." 
+                                  rows="6">onset	duration	trial_type	HED
+1.0	2.0	go	Event/Sensory-event, Red
+3.0	2.0	stop	Event/Sensory-event, Blue</textarea>
+                        <div class="help-text">
+                            Paste tab-separated values with a HED column. The first row should contain headers.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hed-version-2">HED Schema Version:</label>
+                        <select id="hed-version-2">
+                            <option value="8.4.0">8.4.0 (Latest Standard)</option>
+                            <option value="8.3.0">8.3.0 (Standard)</option>
+                            <option value="8.2.0">8.2.0 (Standard)</option>
+                        </select>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="warnings-2">
+                        <label for="warnings-2">Check for warnings</label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sidecar-data">Sidecar JSON (optional):</label>
+                        <textarea id="sidecar-data" 
+                                  placeholder='{"trial_type": {"go": {"HED": "Action/Move"}}}'
+                                  rows="4"></textarea>
+                        <div class="help-text">
+                            Optional BIDS sidecar JSON with HED annotations for trial types.
+                        </div>
+                    </div>
+
+                    <button id="validate-tsv-btn" class="btn">
+                        <span>📊</span> Validate TSV Data
+                    </button>
+
+                    <div id="tsv-results" class="results"></div>
+                </div>
+            </section>
+
+            <!-- Sidecar JSON Validation -->
+            <section class="tool-section">
+                <div class="tool-header">
+                    📄 Sidecar JSON Validation
+                </div>
+                <div class="tool-body">
+                    <div class="examples">
+                        <div class="examples-title">Sidecar JSON Format Example:</div>
+                        <div class="example-item">{</div>
+                        <div class="example-item">&nbsp;&nbsp;"trial_type": {</div>
+                        <div class="example-item">&nbsp;&nbsp;&nbsp;&nbsp;"go": {"HED": "Event/Sensory-event, Green"},</div>
+                        <div class="example-item">&nbsp;&nbsp;&nbsp;&nbsp;"stop": {"HED": "Event/Sensory-event, Red"}</div>
+                        <div class="example-item">&nbsp;&nbsp;}</div>
+                        <div class="example-item">}</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sidecar-json">Sidecar JSON Content:</label>
+                        <textarea id="sidecar-json" 
+                                  placeholder="Paste sidecar JSON here..." 
+                                  rows="8">{
+  "trial_type": {
+    "go": {"HED": "Event/Sensory-event, Green"},
+    "stop": {"HED": "Event/Sensory-event, Red"}
+  }
+}</textarea>
+                        <div class="help-text">
+                            BIDS-formatted JSON sidecar with HED annotations. The validator will find and validate all HED strings.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hed-version-3">HED Schema Version:</label>
+                        <select id="hed-version-3">
+                            <option value="8.4.0">8.4.0 (Latest Standard)</option>
+                            <option value="8.3.0">8.3.0 (Standard)</option>
+                            <option value="8.2.0">8.2.0 (Standard)</option>
+                        </select>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="warnings-3">
+                        <label for="warnings-3">Check for warnings</label>
+                    </div>
+
+                    <button id="validate-sidecar-btn" class="btn">
+                        <span>📄</span> Validate Sidecar JSON
+                    </button>
+
+                    <div id="sidecar-results" class="results"></div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="hed-validator-client.js"></script>
+    <script>
+        // Initialize the application
+        let validator = null;
+
+        // Wait for validator to be ready
+        document.addEventListener('hed-validator-ready', (event) => {
+            const statusBar = document.getElementById('status-bar');
+            const isServerAvailable = event.detail.serverAvailable;
+            
+            if (isServerAvailable) {
+                statusBar.className = 'status-bar';
+                statusBar.innerHTML = '<div class="status-indicator status-success"></div><span>✅ Connected to HED server - full validation available</span>';
+            } else {
+                statusBar.className = 'status-bar';
+                statusBar.innerHTML = '<div class="status-indicator status-warning"></div><span>⚠️ Server not available - using mock validation for demonstration</span>';
+            }
+        });
+
+        // Initialize validator
+        validator = new HEDValidatorClient();
+
+        // Helper function to show results
+        function showResults(elementId, result, loadingText = 'Validating...') {
+            const element = document.getElementById(elementId);
+            
+            // Show loading state
+            element.className = 'results loading';
+            element.style.display = 'block';
+            element.innerHTML = `<span class="spinner"></span> ${loadingText}`;
+            
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    // Show actual results
+                    const className = result.isValid 
+                        ? (result.warnings && result.warnings.length > 0 ? 'warning' : 'success')
+                        : 'error';
+                    
+                    element.className = `results ${className}`;
+                    element.textContent = HEDValidatorClient.formatResults(result);
+                    resolve();
+                }, 300); // Small delay to show loading state
+            });
+        }
+
+        // HED String validation
+        document.getElementById('validate-string-btn').addEventListener('click', async () => {
+            const hedString = document.getElementById('hed-string').value.trim();
+            const hedVersion = document.getElementById('hed-version-1').value;
+            const checkWarnings = document.getElementById('warnings-1').checked;
+            const definitionsText = document.getElementById('definitions-1').value.trim();
+            
+            if (!hedString) {
+                alert('Please enter a HED string to validate.');
+                return;
+            }
+            
+            const definitions = definitionsText 
+                ? definitionsText.split('\n').map(d => d.trim()).filter(d => d)
+                : [];
+            
+            try {
+                const result = await validator.validateString(hedString, {
+                    hedVersion,
+                    checkForWarnings: checkWarnings,
+                    definitions
+                });
+                
+                await showResults('string-results', result, 'Validating HED string...');
+            } catch (error) {
+                const errorResult = {
+                    isValid: false,
+                    errors: [{ code: 'VALIDATION_ERROR', message: error.message }]
+                };
+                await showResults('string-results', errorResult, 'Validating HED string...');
+            }
+        });
+
+        // TSV validation
+        document.getElementById('validate-tsv-btn').addEventListener('click', async () => {
+            const tsvData = document.getElementById('tsv-data').value.trim();
+            const hedVersion = document.getElementById('hed-version-2').value;
+            const checkWarnings = document.getElementById('warnings-2').checked;
+            const sidecarData = document.getElementById('sidecar-data').value.trim() || null;
+            
+            if (!tsvData) {
+                alert('Please enter TSV data to validate.');
+                return;
+            }
+            
+            try {
+                const result = await validator.validateTsv(tsvData, {
+                    hedVersion,
+                    checkForWarnings: checkWarnings,
+                    sidecarData
+                });
+                
+                await showResults('tsv-results', result, 'Validating TSV data...');
+            } catch (error) {
+                const errorResult = {
+                    isValid: false,
+                    errors: [{ code: 'VALIDATION_ERROR', message: error.message }]
+                };
+                await showResults('tsv-results', errorResult, 'Validating TSV data...');
+            }
+        });
+
+        // Sidecar JSON validation
+        document.getElementById('validate-sidecar-btn').addEventListener('click', async () => {
+            const jsonData = document.getElementById('sidecar-json').value.trim();
+            const hedVersion = document.getElementById('hed-version-3').value;
+            const checkWarnings = document.getElementById('warnings-3').checked;
+            
+            if (!jsonData) {
+                alert('Please enter sidecar JSON to validate.');
+                return;
+            }
+            
+            try {
+                const result = await validator.validateSidecar(jsonData, {
+                    hedVersion,
+                    checkForWarnings: checkWarnings
+                });
+                
+                await showResults('sidecar-results', result, 'Validating sidecar JSON...');
+            } catch (error) {
+                const errorResult = {
+                    isValid: false,
+                    errors: [{ code: 'VALIDATION_ERROR', message: error.message }]
+                };
+                await showResults('sidecar-results', errorResult, 'Validating sidecar JSON...');
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const activeElement = document.activeElement;
+                    const section = activeElement.closest('.tool-section');
+                    if (section) {
+                        const button = section.querySelector('button.btn');
+                        if (button) button.click();
+                    }
+                }
+            }
+        });
+
+        console.log('🧠 HED Validator interface initialized successfully!');
+    </script>
+</body>
+</html>

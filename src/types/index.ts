@@ -32,10 +32,10 @@ export interface DefinitionResult {
 }
 
 /**
- * Result type specifically for parseHedSidecar tool
+ * Result type specifically for validateHedSidecar tool
  * Extends basic validation with the parsed sidecar data
  */
-export interface ParseHedSidecarResult {
+export interface ValidateHedSidecarResult {
   parsedHedSidecar: string; // Stringified JSON of the parsed sidecar data
   errors: FormattedIssue[];
   warnings: FormattedIssue[];

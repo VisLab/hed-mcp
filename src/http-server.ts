@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { 
   handleValidateHedString,
   ValidateHedStringArgs 
 } from "./tools/validateHedString.js";
 import {
-  handleParseHedSidecar,
-  ParseHedSidecarArgs
-} from "./tools/parseHedSidecar.js";
+  handleValidateHedSidecar,
+  ValidateHedSidecarArgs
+} from "./tools/validateHedSidecar.js";
 import {
   handleValidateHedTsv,
   ValidateHedTsvArgs
@@ -44,8 +44,8 @@ class HEDHttpServer {
     // Parse URL-encoded bodies
     this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-    // Request logging
-    this.app.use((req, res, next) => {
+  // Request logging
+  this.app.use((req: Request, res: Response, next: NextFunction) => {
       console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
       next();
     });
@@ -53,7 +53,7 @@ class HEDHttpServer {
 
   private setupRoutes(): void {
     // Health check endpoint
-    this.app.get('/health', (req, res) => {
+  this.app.get('/health', (req: Request, res: Response) => {
       res.json({
         status: 'healthy',
         timestamp: new Date().toISOString(),
@@ -62,7 +62,7 @@ class HEDHttpServer {
     });
 
     // API information endpoint
-    this.app.get('/api', (req, res) => {
+  this.app.get('/api', (req: Request, res: Response) => {
       res.json({
         name: 'HED Validation API',
         version: '1.0.0',
@@ -79,7 +79,7 @@ class HEDHttpServer {
     });
 
     // Validate HED string
-    this.app.post('/api/validate/string', async (req, res) => {
+  this.app.post('/api/validate/string', async (req: Request, res: Response) => {
       try {
         const args: ValidateHedStringArgs = {
           hedString: req.body.hedString,
@@ -108,7 +108,7 @@ class HEDHttpServer {
     });
 
     // Validate TSV data
-    this.app.post('/api/validate/tsv', async (req, res) => {
+  this.app.post('/api/validate/tsv', async (req: Request, res: Response) => {
       try {
         const args: ValidateHedTsvArgs = {
           filePath: req.body.filePath || '/virtual/data.tsv',
@@ -139,9 +139,9 @@ class HEDHttpServer {
     });
 
     // Parse and validate sidecar
-    this.app.post('/api/validate/sidecar', async (req, res) => {
+    this.app.post('/api/validate/sidecar', async (req: Request, res: Response) => {
       try {
-        const args: ParseHedSidecarArgs = {
+        const args: ValidateHedSidecarArgs = {
           filePath: req.body.filePath || '/virtual/sidecar.json',
           hedVersion: req.body.hedVersion,
           checkForWarnings: req.body.checkForWarnings || false,
@@ -156,7 +156,7 @@ class HEDHttpServer {
           });
         }
 
-        const result = await handleParseHedSidecar(args);
+        const result = await handleValidateHedSidecar(args);
         res.json(result);
       } catch (error) {
         console.error('Sidecar validation error:', error);
@@ -165,18 +165,16 @@ class HEDHttpServer {
           message: error instanceof Error ? error.message : 'Unknown error'
         });
       }
-    });
-
-    // Serve static files (like the browser validator)
+    });    // Serve static files (like the browser validator)
     this.app.use('/static', express.static('public'));
     
     // Serve the browser validator at root
-    this.app.get('/', (req, res) => {
+  this.app.get('/', (req: Request, res: Response) => {
       res.sendFile('browser-validator.html', { root: process.cwd() });
     });
 
     // Error handling middleware
-    this.app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  this.app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
       console.error('Unhandled error:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -185,7 +183,7 @@ class HEDHttpServer {
     });
 
     // 404 handler
-    this.app.use((req, res) => {
+  this.app.use((req: Request, res: Response) => {
       res.status(404).json({
         error: 'Not found',
         message: `Endpoint ${req.method} ${req.path} not found`,

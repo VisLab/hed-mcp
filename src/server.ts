@@ -2,6 +2,7 @@
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { WebSocket, WebSocketServer, RawData } from 'ws';
 import {
   CallToolRequestSchema,
   ListResourcesRequestSchema,
@@ -16,25 +17,70 @@ import {
   ValidateHedStringArgs 
 } from "./tools/validateHedString.js";
 import {
-  parseHedSidecar,
-  handleParseHedSidecar,
-  ParseHedSidecarArgs
-} from "./tools/parseHedSidecar.js";
+  validateHedSidecar,
+  handleValidateHedSidecar,
+  ValidateHedSidecarArgs
+} from "./tools/validateHedSidecar.js";
 import {
   validateHedTsv,
   handleValidateHedTsv,
   ValidateHedTsvArgs
 } from "./tools/validateHedTsv.js";
+import {
+  getFileFromPath,
+  handleGetFileFromPath,
+  GetFileFromPathArgs
+} from "./tools/getFileFromPath.js";
 
 // Import resources
 import { hedSchemaResource, handleResourceRequest } from "./resources/hedSchema.js";
 
-// Import schema cache
-import { schemaCache } from "./utils/schemaCache.js";
+/**
+ * WebSocket transport for MCP server
+ */
+class WebSocketServerTransport {
+  private ws: WebSocket;
+
+  constructor(ws: WebSocket) {
+    this.ws = ws;
+  }
+
+  async start() {
+    // WebSocket is already connected when this transport is created
+  }
+
+  async close() {
+    this.ws.close();
+  }
+
+  async send(message: any) {
+    if (this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify(message));
+    }
+  }
+
+  onMessage(callback: (message: any) => void) {
+  this.ws.on('message', (data: RawData) => {
+      try {
+        const message = JSON.parse(data.toString());
+        callback(message);
+      } catch (error) {
+        console.error('Failed to parse WebSocket message:', error);
+      }
+    });
+  }
+
+  onClose(callback: () => void) {
+    this.ws.on('close', callback);
+  }
+
+  onError(callback: (error: Error) => void) {
+    this.ws.on('error', (err: Error) => callback(err));
+  }
+}
 
 /**
- * HED MCP Server
- * Provides tools and resources for HED (Hierarchical Event Descriptor) validation
+ * HED MCP Server with WebSocket support
  */
 class HEDMCPServer {
   private server: Server;
@@ -56,7 +102,6 @@ class HEDMCPServer {
     this.setupToolHandlers();
     this.setupResourceHandlers();
     
-    // Log cache initialization
     console.error("HED Schema cache initialized");
   }
 
@@ -64,7 +109,7 @@ class HEDMCPServer {
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
-        tools: [validateHedString, parseHedSidecar, validateHedTsv],
+        tools: [validateHedString, validateHedSidecar, validateHedTsv, getFileFromPath],
       };
     });
 
@@ -84,8 +129,8 @@ class HEDMCPServer {
             ],
           };
 
-        case "parseHedSidecar":
-          const sidecarResult = await handleParseHedSidecar(args as ParseHedSidecarArgs);
+        case "validateHedSidecar":
+          const sidecarResult = await handleValidateHedSidecar(args as ValidateHedSidecarArgs);
           return {
             content: [
               {
@@ -102,6 +147,17 @@ class HEDMCPServer {
               {
                 type: "text",
                 text: JSON.stringify(tsvResult, null, 2),
+              },
+            ],
+          };
+
+        case "getFileFromPath":
+          const fileContent = await handleGetFileFromPath(args as unknown as GetFileFromPathArgs);
+          return {
+            content: [
+              {
+                type: "text",
+                text: fileContent,
               },
             ],
           };
@@ -141,16 +197,60 @@ class HEDMCPServer {
     });
   }
 
-  async run(): Promise<void> {
+  async runStdio(): Promise<void> {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     console.error("HED MCP Server running on stdio");
   }
+
+  async runWebSocket(port: number = 8080): Promise<void> {
+    const wss = new WebSocketServer({ port });
+    
+    console.error(`HED MCP Server WebSocket listening on port ${port}`);
+    
+  wss.on('connection', async (ws: WebSocket) => {
+      console.error('WebSocket client connected');
+      
+      const transport = new WebSocketServerTransport(ws);
+      
+      try {
+        await this.server.connect(transport as any);
+        console.error('MCP server connected to WebSocket client');
+      } catch (error) {
+        console.error('Failed to connect MCP server to WebSocket:', error);
+        ws.close();
+      }
+      
+      ws.on('close', () => {
+        console.error('WebSocket client disconnected');
+      });
+      
+  ws.on('error', (error: Error) => {
+        console.error('WebSocket error:', error);
+      });
+    });
+
+    // Keep the server running
+    return new Promise(() => {}); // Never resolve to keep server running
+  }
 }
+
+// Command line argument parsing
+const args = process.argv.slice(2);
+const useWebSocket = args.includes('--websocket') || args.includes('-w');
+const port = parseInt(args.find(arg => arg.startsWith('--port='))?.split('=')[1] || '8080');
 
 // Start the server
 const server = new HEDMCPServer();
-server.run().catch((error) => {
-  console.error("Server error:", error);
-  process.exit(1);
-});
+
+if (useWebSocket) {
+  server.runWebSocket(port).catch((error) => {
+    console.error("WebSocket server error:", error);
+    process.exit(1);
+  });
+} else {
+  server.runStdio().catch((error) => {
+    console.error("Stdio server error:", error);
+    process.exit(1);
+  });
+}

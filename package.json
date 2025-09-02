@@ -1,5 +1,5 @@
 {
-  "name": "hed-mcp-typescript",
+  "name": "hed-mcp",
   "version": "1.0.0",
   "description": "Model Context Protocol (MCP) server for HED (Hierarchical Event Descriptor) validation. Provides tools for validating HED strings, TSV files, and sidecar files through a standardized MCP interface.",
   "main": "dist/server.js",
@@ -32,15 +32,18 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/VisLab/hed-mcp-typescript.git"
+    "url": "https://github.com/hed-standard/hed-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/VisLab/hed-mcp-typescript/issues"
+    "url": "https://github.com/hed-standard/hed-mcp/issues"
   },
-  "homepage": "https://github.com/VisLab/hed-mcp-typescript#readme",
+  "homepage": "https://github.com/hed-standard/hed-mcp#readme",
   "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.15",
+    "@types/ws": "^8.18.1",
     "jest": "^30.0.4",
     "rimraf": "^6.0.1",
     "ts-jest": "^29.4.0",
@@ -48,7 +51,10 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.16.0",
-    "hed-validator": "github:hed-standard/hed-javascript",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "hed-validator": "^4.1.4",
+    "ws": "^8.18.0",
     "zod": "^3.25.76"
   }
 }

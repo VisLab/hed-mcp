@@ -1,61 +1,61 @@
-import { handleParseHedSidecar, ParseHedSidecarArgs, parseHedSidecar } from '../../src/tools/parseHedSidecar';
+import { handleValidateHedSidecar, ValidateHedSidecarArgs, validateHedSidecar } from '../../src/tools/validateHedSidecar';
 import { buildSchemasFromVersion } from 'hed-validator';
 import * as path from 'path';
 
-describe('parseHedSidecarTool', () => {
+describe('validateHedSidecarTool', () => {
   describe('Tool Definition', () => {
     test('should have correct tool name', () => {
-      expect(parseHedSidecar.name).toBe('parseHedSidecar');
+      expect(validateHedSidecar.name).toBe('validateHedSidecar');
     });
 
     test('should have a description', () => {
-      expect(parseHedSidecar.description).toBeDefined();
-      if (parseHedSidecar.description) {
-        expect(parseHedSidecar.description.length).toBeGreaterThan(0);
+      expect(validateHedSidecar.description).toBeDefined();
+      if (validateHedSidecar.description) {
+        expect(validateHedSidecar.description.length).toBeGreaterThan(0);
       }
     });
 
     test('should have input schema with required filePath', () => {
-      expect(parseHedSidecar.inputSchema).toBeDefined();
-      expect(parseHedSidecar.inputSchema.properties).toBeDefined();
-      if (parseHedSidecar.inputSchema.properties) {
-        expect(parseHedSidecar.inputSchema.properties.filePath).toBeDefined();
+      expect(validateHedSidecar.inputSchema).toBeDefined();
+      expect(validateHedSidecar.inputSchema.properties).toBeDefined();
+      if (validateHedSidecar.inputSchema.properties) {
+        expect(validateHedSidecar.inputSchema.properties.filePath).toBeDefined();
       }
-      expect(parseHedSidecar.inputSchema.required).toContain('filePath');
+      expect(validateHedSidecar.inputSchema.required).toContain('filePath');
     });
 
     test('should have required hedVersion parameter', () => {
-      if (parseHedSidecar.inputSchema.properties) {
-        expect(parseHedSidecar.inputSchema.properties.hedVersion).toBeDefined();
+      if (validateHedSidecar.inputSchema.properties) {
+        expect(validateHedSidecar.inputSchema.properties.hedVersion).toBeDefined();
       }
-      expect(parseHedSidecar.inputSchema.required).toContain('hedVersion');
+      expect(validateHedSidecar.inputSchema.required).toContain('hedVersion');
     });
 
     test('should have optional checkForWarnings parameter', () => {
-      if (parseHedSidecar.inputSchema.properties) {
-        expect(parseHedSidecar.inputSchema.properties.checkForWarnings).toBeDefined();
+      if (validateHedSidecar.inputSchema.properties) {
+        expect(validateHedSidecar.inputSchema.properties.checkForWarnings).toBeDefined();
       }
-      expect(parseHedSidecar.inputSchema.required).not.toContain('checkForWarnings');
+      expect(validateHedSidecar.inputSchema.required).not.toContain('checkForWarnings');
     });
 
     test('should have optional fileData parameter', () => {
-      if (parseHedSidecar.inputSchema.properties) {
-        expect(parseHedSidecar.inputSchema.properties.fileData).toBeDefined();
+      if (validateHedSidecar.inputSchema.properties) {
+        expect(validateHedSidecar.inputSchema.properties.fileData).toBeDefined();
       }
-      expect(parseHedSidecar.inputSchema.required).not.toContain('fileData');
+      expect(validateHedSidecar.inputSchema.required).not.toContain('fileData');
     });
   });
 
   describe('Handler Function', () => {
     test('should handle valid inputs with provided fileData', async () => {
-      const args: ParseHedSidecarArgs = {
+      const args: ValidateHedSidecarArgs = {
         filePath: '/path/to/test.json',
         hedVersion: '8.4.0',
         checkForWarnings: false,
         fileData: '{"response": {"HED": "Label/#, Red/Blech"}}' // Example valid JSON data
       };
 
-      const result = await handleParseHedSidecar(args);
+      const result = await handleValidateHedSidecar(args);
       
       expect(result).toBeDefined();
       expect(result.errors).toEqual([]);
@@ -65,13 +65,13 @@ describe('parseHedSidecarTool', () => {
     });
 
     test('should handle bad file reading when fileData is not provided', async () => {
-      const args: ParseHedSidecarArgs = {
+      const args: ValidateHedSidecarArgs = {
         filePath: '/path/to/non-existent.json',
         hedVersion: '8.4.0',
         checkForWarnings: false
       };
 
-      const result = await handleParseHedSidecar(args);
+      const result = await handleValidateHedSidecar(args);
       
       expect(result).toBeDefined();
       expect(result.errors).toBeDefined();
@@ -81,14 +81,14 @@ describe('parseHedSidecarTool', () => {
     });
 
     test('should handle checkForWarnings parameter with fileData', async () => {
-      const args: ParseHedSidecarArgs = {
+      const args: ValidateHedSidecarArgs = {
         filePath: '/path/to/test.json',
         hedVersion: '8.4.0',
         checkForWarnings: true,
         fileData:  '{"response": {"HED": "Label/#, Red/Blech"}}' // Example valid JSON data
       };
 
-      const result = await handleParseHedSidecar(args);
+      const result = await handleValidateHedSidecar(args);
       
       expect(result).toBeDefined();
       expect(result.errors).toEqual([]);
@@ -96,14 +96,14 @@ describe('parseHedSidecarTool', () => {
     });
 
     test('should handle invalid JSON string in fileData parameter', async () => {
-      const args: ParseHedSidecarArgs = {
+      const args: ValidateHedSidecarArgs = {
         filePath: '/path/to/test.json',
         hedVersion: '8.4.0',
         checkForWarnings: false,
         fileData: 'invalid json content' // Invalid JSON string
       };
 
-      const result = await handleParseHedSidecar(args);
+      const result = await handleValidateHedSidecar(args);
       
       expect(result).toBeDefined();
       expect(result.errors).toBeDefined();
@@ -112,14 +112,14 @@ describe('parseHedSidecarTool', () => {
     });
 
     test('should handle JSON parsing errors', async () => {
-      const args: ParseHedSidecarArgs = {
+      const args: ValidateHedSidecarArgs = {
         filePath: '/path/to/test.json',
         hedVersion: '8.4.0',
         checkForWarnings: false,
         fileData: 'invalid json content'
       };
 
-      const result = await handleParseHedSidecar(args);
+      const result = await handleValidateHedSidecar(args);
       
       expect(result).toBeDefined();
       expect(result.errors).toBeDefined();
@@ -128,13 +128,13 @@ describe('parseHedSidecarTool', () => {
     });
 
     test('should handle schema loading errors gracefully', async () => {
-      const args: ParseHedSidecarArgs = {
+      const args: ValidateHedSidecarArgs = {
         filePath: '/path/to/test.json',
         hedVersion: 'invalid-version',
         checkForWarnings: false
       };
 
-      const result = await handleParseHedSidecar(args);
+      const result = await handleValidateHedSidecar(args);
       
       expect(result).toBeDefined();
       expect(result.errors).toBeDefined();
@@ -152,13 +152,13 @@ describe('parseHedSidecarTool', () => {
 
   describe('Test Data Files', () => {
     test('should validate participants_bad.json and detect errors and warnings', async () => {
-      const args: ParseHedSidecarArgs = {
+      const args: ValidateHedSidecarArgs = {
         filePath: path.join(__dirname, '..', 'data', 'participants_bad.json'),
         hedVersion: '8.4.0',
         checkForWarnings: true
       };
 
-      const result = await handleParseHedSidecar(args);
+      const result = await handleValidateHedSidecar(args);
       
       expect(result).toBeDefined();
       expect(result.errors).toBeDefined();
@@ -174,13 +174,13 @@ describe('parseHedSidecarTool', () => {
     });
 
     test('should validate task-FacePerception_events.json with no errors or warnings', async () => {
-      const args: ParseHedSidecarArgs = {
+      const args: ValidateHedSidecarArgs = {
         filePath: path.join(__dirname, '..', 'data', 'task-FacePerception_events.json'),
         hedVersion: '8.4.0',
         checkForWarnings: true
       };
 
-      const result = await handleParseHedSidecar(args);
+      const result = await handleValidateHedSidecar(args);
       
       expect(result).toBeDefined();
       
@@ -194,13 +194,13 @@ describe('parseHedSidecarTool', () => {
     });
 
     test('should handle participants_bad.json without checking for warnings', async () => {
-      const args: ParseHedSidecarArgs = {
+      const args: ValidateHedSidecarArgs = {
         filePath: path.join(__dirname, '..', 'data', 'participants_bad.json'),
         hedVersion: '8.4.0',
         checkForWarnings: false
       };
 
-      const result = await handleParseHedSidecar(args);
+      const result = await handleValidateHedSidecar(args);
       
       expect(result).toBeDefined();
       
@@ -214,13 +214,13 @@ describe('parseHedSidecarTool', () => {
     });
 
     test('should validate task-FacePerception_events.json without checking for warnings', async () => {
-      const args: ParseHedSidecarArgs = {
+      const args: ValidateHedSidecarArgs = {
         filePath: path.join(__dirname, '..', 'data', 'task-FacePerception_events.json'),
         hedVersion: '8.4.0',
         checkForWarnings: false
       };
 
-      const result = await handleParseHedSidecar(args);
+      const result = await handleValidateHedSidecar(args);
       
       expect(result).toBeDefined();
       
