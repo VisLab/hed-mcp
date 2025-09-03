@@ -1,0 +1,36 @@
+name: Code Coverage
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+      id-token: write
+      contents: read
+
+jobs:
+  coverage:
+    name: Upload Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests and generate coverage
+      run: npm run test:coverage
+      
+    - name: Upload coverage to Quality
+      uses: qltysh/qlty-action/coverage@v2
+      with:
+        oidc: true
+        files: coverage/lcov.info

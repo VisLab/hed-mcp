@@ -18,8 +18,8 @@ export async function handleResourceRequest(uri: string): Promise<any> {
     case "hed://schema/latest":
       // TODO: Return actual HED schema data
       return {
-        version: "8.3.0",
-        description: "HED Schema version 8.3.0",
+        version: "8.4.0",
+        description: "HED Schema version 8.4.0",
         tags: [
           // Placeholder schema structure
           "Action",

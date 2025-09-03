@@ -133,31 +133,31 @@ src/
 - Common use case documentation
 - Integration examples for multiple platforms
 
-### Known Limitations
+### Known limitations
 
-#### Current Constraints
+#### Current constraints
 - Single server instance per process
 - File-based input/output (no streaming yet)
 - Limited to HED JavaScript validator capabilities
-- Requires Node.js 18+ runtime environment
+- Requires Node.js 22+ runtime environment
 
-#### Future Enhancements
+#### Future enhancements
 - Streaming support for large files
 - Multi-threaded validation processing
 - Additional output formats (XML, CSV)
 - Real-time validation WebSocket support
 
-### Migration Notes
+### Migration notes
 
 This is the initial release, so no migration is required. Future releases will include migration guides as needed.
 
-### Breaking Changes
+### Breaking changes
 
 None in this initial release.
 
 ### Security
 
-#### Security Measures
+#### Security measures
 - Input validation for all parameters
 - Safe file system operations
 - No arbitrary code execution
@@ -177,7 +177,7 @@ None in this initial release.
 - TSV file validation: ~50-200ms per file (depending on size)
 - Memory usage: ~50-100MB base + schema cache
 
-#### Optimization Tips
+#### Optimization tips
 - Reuse server connections for batch operations
 - Cache schemas between validations
 - Use inline data for small datasets
@@ -215,4 +215,4 @@ None in this initial release.
 
 ---
 
-For more information about releases, see the [GitHub Releases](https://github.com/VisLab/hed-mcp-typescript/releases) page.
+For more information about releases, see the [GitHub Releases](https://github.com/hed-standard/hed-mcp/releases) page.

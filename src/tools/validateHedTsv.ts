@@ -29,11 +29,14 @@ const validateHedTsvInputSchema = {
       default: false
     },
     fileData: {
+      type: "string" as const,
       description: "Optional file data to use instead of reading from filePath",
+      default: ""
     },
     jsonData: {
       type: "string" as const,
-      description: "Optional JSON data string"
+      description: "Optional JSON data string",
+      default: ""
     },
     definitions: {
       type: "array" as const,
@@ -64,7 +67,7 @@ export const validateHedTsv: Tool = {
  * Validate a HED TSV file using the specified HED schema version.
  */
 export async function handleValidateHedTsv(args: ValidateHedTsvArgs): Promise<HedValidationResult> {
-  const { filePath, hedVersion, checkForWarnings = false, fileData, jsonData, definitions = [] } = args;
+  const { filePath, hedVersion, checkForWarnings = false, fileData = '', jsonData = '', definitions = [] } = args;
 
   try {
     // Use schema cache to get or create the HED schemas

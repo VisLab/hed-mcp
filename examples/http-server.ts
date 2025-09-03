@@ -1,19 +1,58 @@
 #!/usr/bin/env node
 
-import express from 'express';
+/**
+ * HED HTTP REST API Server Example
+ * 
+ * This is an example implementation of an HTTP REST API server that provides
+ * endpoints for HED (Hierarchical Event Descriptor) validation. It demonstrates
+ * how to create a web service that allows browser applications and other HTTP
+ * clients to validate HED strings, TSV files, and sidecar JSON files.
+ * 
+ * Features:
+ * - CORS-enabled endpoints for browser compatibility
+ * - JSON and form-data request parsing
+ * - Comprehensive error handling and validation
+ * - Health check and API documentation endpoints
+ * - Support for all HED validation types (string, TSV, sidecar)
+ * 
+ * Usage:
+ *   npm run build
+ *   node examples/http-server.js
+ * 
+ * The server will start on http://localhost:3000 by default.
+ * You can set the PORT environment variable to use a different port.
+ * 
+ * API Endpoints:
+ *   GET  /health                  - Health check
+ *   GET  /api                     - API information and documentation
+ *   POST /api/file                - Get file content from path
+ *   POST /api/validate/string     - Validate a HED string
+ *   POST /api/validate/tsv        - Validate TSV file data
+ *   POST /api/validate/sidecar    - Validate sidecar JSON data
+ * 
+ * @author HED-MCP Development Team
+ * @version 1.0.0
+ * @license MIT
+ */
+
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { 
   handleValidateHedString,
   ValidateHedStringArgs 
-} from "./tools/validateHedString.js";
+} from "../src/tools/validateHedString.js";
 import {
-  handleParseHedSidecar,
-  ParseHedSidecarArgs
-} from "./tools/parseHedSidecar.js";
+  handleValidateHedSidecar,
+  ValidateHedSidecarArgs
+} from "../src/tools/validateHedSidecar.js";
 import {
   handleValidateHedTsv,
   ValidateHedTsvArgs
-} from "./tools/validateHedTsv.js";
+} from "../src/tools/validateHedTsv.js";
+import {
+  handleGetFileFromPath,
+  GetFileFromPathArgs
+} from "../src/tools/getFileFromPath.js";
 
 /**
  * HTTP REST API server for HED validation
@@ -44,8 +83,8 @@ class HEDHttpServer {
     // Parse URL-encoded bodies
     this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-    // Request logging
-    this.app.use((req, res, next) => {
+  // Request logging
+  this.app.use((req: Request, res: Response, next: NextFunction) => {
       console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
       next();
     });
@@ -53,7 +92,7 @@ class HEDHttpServer {
 
   private setupRoutes(): void {
     // Health check endpoint
-    this.app.get('/health', (req, res) => {
+  this.app.get('/health', (req: Request, res: Response) => {
       res.json({
         status: 'healthy',
         timestamp: new Date().toISOString(),
@@ -62,7 +101,7 @@ class HEDHttpServer {
     });
 
     // API information endpoint
-    this.app.get('/api', (req, res) => {
+  this.app.get('/api', (req: Request, res: Response) => {
       res.json({
         name: 'HED Validation API',
         version: '1.0.0',
@@ -70,6 +109,7 @@ class HEDHttpServer {
         endpoints: {
           'GET /health': 'Health check',
           'GET /api': 'API information',
+          'POST /api/file': 'Get file content from path',
           'POST /api/validate/string': 'Validate HED string',
           'POST /api/validate/tsv': 'Validate TSV file data',
           'POST /api/validate/sidecar': 'Parse and validate sidecar JSON'
@@ -78,8 +118,37 @@ class HEDHttpServer {
       });
     });
 
+    // Get file content from path
+    this.app.post('/api/file', async (req: Request, res: Response) => {
+      try {
+        const args: GetFileFromPathArgs = {
+          filePath: req.body.filePath
+        };
+
+        // Validate required parameters
+        if (!args.filePath) {
+          return res.status(400).json({
+            error: 'Missing required parameters',
+            required: ['filePath']
+          });
+        }
+
+        const fileContent = await handleGetFileFromPath(args);
+        res.json({
+          filePath: args.filePath,
+          content: fileContent
+        });
+      } catch (error) {
+        console.error('File retrieval error:', error);
+        res.status(500).json({
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    });
+
     // Validate HED string
-    this.app.post('/api/validate/string', async (req, res) => {
+  this.app.post('/api/validate/string', async (req: Request, res: Response) => {
       try {
         const args: ValidateHedStringArgs = {
           hedString: req.body.hedString,
@@ -108,22 +177,22 @@ class HEDHttpServer {
     });
 
     // Validate TSV data
-    this.app.post('/api/validate/tsv', async (req, res) => {
+  this.app.post('/api/validate/tsv', async (req: Request, res: Response) => {
       try {
         const args: ValidateHedTsvArgs = {
           filePath: req.body.filePath || '/virtual/data.tsv',
           hedVersion: req.body.hedVersion,
           checkForWarnings: req.body.checkForWarnings || false,
-          fileData: req.body.fileData || req.body.tsvData,
-          jsonData: req.body.jsonData || req.body.sidecarData,
+          fileData: req.body.fileData || '',
+          jsonData: req.body.jsonData || '',
           definitions: req.body.definitions || []
         };
 
         // Validate required parameters
-        if (!args.hedVersion || (!args.fileData && !req.body.tsvData)) {
+        if (!args.hedVersion) {
           return res.status(400).json({
             error: 'Missing required parameters',
-            required: ['hedVersion', 'fileData or tsvData']
+            required: ['hedVersion']
           });
         }
 
@@ -139,24 +208,24 @@ class HEDHttpServer {
     });
 
     // Parse and validate sidecar
-    this.app.post('/api/validate/sidecar', async (req, res) => {
+    this.app.post('/api/validate/sidecar', async (req: Request, res: Response) => {
       try {
-        const args: ParseHedSidecarArgs = {
+        const args: ValidateHedSidecarArgs = {
           filePath: req.body.filePath || '/virtual/sidecar.json',
           hedVersion: req.body.hedVersion,
           checkForWarnings: req.body.checkForWarnings || false,
-          fileData: req.body.fileData || req.body.jsonData
+          jsonData: req.body.jsonData || req.body.fileData || ''
         };
 
         // Validate required parameters
-        if (!args.hedVersion || (!args.fileData && !req.body.jsonData)) {
+        if (!args.hedVersion) {
           return res.status(400).json({
             error: 'Missing required parameters',
-            required: ['hedVersion', 'fileData or jsonData']
+            required: ['hedVersion']
           });
         }
 
-        const result = await handleParseHedSidecar(args);
+        const result = await handleValidateHedSidecar(args);
         res.json(result);
       } catch (error) {
         console.error('Sidecar validation error:', error);
@@ -165,18 +234,16 @@ class HEDHttpServer {
           message: error instanceof Error ? error.message : 'Unknown error'
         });
       }
-    });
-
-    // Serve static files (like the browser validator)
+    });    // Serve static files (like the browser validator)
     this.app.use('/static', express.static('public'));
     
     // Serve the browser validator at root
-    this.app.get('/', (req, res) => {
+  this.app.get('/', (req: Request, res: Response) => {
       res.sendFile('browser-validator.html', { root: process.cwd() });
     });
 
     // Error handling middleware
-    this.app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  this.app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
       console.error('Unhandled error:', error);
       res.status(500).json({
         error: 'Internal server error',
@@ -185,13 +252,14 @@ class HEDHttpServer {
     });
 
     // 404 handler
-    this.app.use((req, res) => {
+  this.app.use((req: Request, res: Response) => {
       res.status(404).json({
         error: 'Not found',
         message: `Endpoint ${req.method} ${req.path} not found`,
         available: [
           'GET /health',
-          'GET /api', 
+          'GET /api',
+          'POST /api/file',
           'POST /api/validate/string',
           'POST /api/validate/tsv',
           'POST /api/validate/sidecar'

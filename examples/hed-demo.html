@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HED Validator - Demo & Integration Guide</title>
+    <link rel="stylesheet" href="hed-validator.css">
+    <meta name="description" content="Demo and integration guide for the HED Validator browser client">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🧠 HED Validator Demo</h1>
+            <div class="subtitle">Integration guide and interactive examples</div>
+        </div>
+
+        <!-- Status Bar -->
+        <div id="status-bar" class="status-bar">
+            <div class="spinner"></div>
+            <span>Initializing validator...</span>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Quick Validation Form -->
+            <section id="quick-validator-container">
+                <!-- This will be populated by the JavaScript client -->
+            </section>
+
+            <!-- Interactive Demo -->
+            <section class="tool-section">
+                <div class="tool-header">
+                    🎮 Interactive Demo
+                </div>
+                <div class="tool-body">
+                    <p class="help-text">
+                        Try these pre-configured examples to see how the HED validator works with different types of input.
+                    </p>
+                    
+                    <div class="demo-grid">
+                        <div class="demo-buttons">
+                            <button class="btn" onclick="runDemo('valid-string')">
+                                ✅ Test Valid HED String
+                            </button>
+                            <button class="btn btn-secondary" onclick="runDemo('invalid-string')">
+                                ❌ Test Invalid HED String
+                            </button>
+                            <button class="btn" onclick="runDemo('warning-string')">
+                                ⚠️ Test String with Warnings
+                            </button>
+                            <button class="btn btn-secondary" onclick="runDemo('tsv-data')">
+                                📊 Test TSV Data Validation
+                            </button>
+                            <button class="btn" onclick="runDemo('sidecar-json')">
+                                📄 Test Sidecar JSON
+                            </button>
+                            <button class="btn btn-secondary" onclick="runDemo('error-handling')">
+                                🚨 Test Error Handling
+                            </button>
+                        </div>
+                        
+                        <div class="demo-results" id="demo-results">
+                            Click a demo button to see validation results here...
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Integration Guide -->
+            <section class="integration-guide">
+                <h2>🛠 Integration Guide</h2>
+                
+                <p>
+                    The HED Validator can be easily integrated into your web applications. 
+                    It works both with the HED MCP server for full validation and as a standalone 
+                    client with mock validation for development and testing.
+                </p>
+
+                <h3>1. Include the Required Files</h3>
+                <div class="code-block">
+&lt;!-- Include the CSS for styling (optional) --&gt;
+&lt;link rel="stylesheet" href="hed-validator.css"&gt;
+
+&lt;!-- Include the HED validator client --&gt;
+&lt;script src="hed-validator-client.js"&gt;&lt;/script&gt;
+                </div>
+
+                <h3>2. Basic Usage</h3>
+                <div class="code-block">
+// Create a validator client
+const validator = new HEDValidatorClient({
+    serverEndpoint: '/api/hed',  // Optional: custom endpoint
+    timeout: 10000               // Optional: request timeout
+});
+
+// Validate a HED string
+const result = await validator.validateString(
+    'Event/Sensory-event, Red, Blue',
+    {
+        hedVersion: '8.4.0',
+        checkForWarnings: true,
+        definitions: []
+    }
+);
+
+// Handle the results
+if (result.isValid) {
+    console.log('✅ Validation successful!');
+    if (result.warnings.length > 0) {
+        console.log('⚠️ Warnings:', result.warnings);
+    }
+} else {
+    console.log('❌ Validation failed:', result.errors);
+}
+                </div>
+
+                <h3>3. Validate TSV Data</h3>
+                <div class="code-block">
+const tsvData = `onset	duration	trial_type	HED
+1.0	2.0	go	Event/Sensory-event, Red
+3.0	2.0	stop	Event/Sensory-event, Blue`;
+
+const result = await validator.validateTsv(tsvData, {
+    hedVersion: '8.4.0',
+    checkForWarnings: true,
+    sidecarData: null  // Optional sidecar JSON
+});
+
+console.log(`Processed ${result.rowsProcessed} rows`);
+                </div>
+
+                <h3>4. Validate Sidecar JSON</h3>
+                <div class="code-block">
+const sidecarJson = `{
+  "trial_type": {
+    "go": {"HED": "Event/Sensory-event, Green"},
+    "stop": {"HED": "Event/Sensory-event, Red"}
+  }
+}`;
+
+const result = await validator.validateSidecar(sidecarJson, {
+    hedVersion: '8.4.0',
+    checkForWarnings: true
+});
+                </div>
+
+                <h3>5. Create Pre-built Validation Forms</h3>
+                <div class="code-block">
+// Create a complete validation form in any container
+const client = HEDValidatorClient.createValidationForm('my-container');
+
+// The form includes input fields, validation controls, and result display
+// It's fully functional and ready to use
+                </div>
+
+                <h3>6. Event Handling</h3>
+                <div class="code-block">
+// Listen for validator status updates
+document.addEventListener('hed-validator-ready', (event) => {
+    const isServerAvailable = event.detail.serverAvailable;
+    console.log(`Server available: ${isServerAvailable}`);
+});
+
+// Format validation results for display
+const formattedResults = HEDValidatorClient.formatResults(result);
+document.getElementById('results').textContent = formattedResults;
+                </div>
+
+                <h3>7. Server Setup (Optional - for Full Validation)</h3>
+                <p>
+                    For production use with real HED validation (not mock), you need to run the HED HTTP server:
+                </p>
+                <div class="code-block">
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# Start the HTTP server
+node dist/http-server.js
+
+# Server will be available at http://localhost:3000
+# API endpoints will be at http://localhost:3000/api/hed/
+                </div>
+
+                <h3>8. Available Methods</h3>
+                <div style="margin-top: 1rem;">
+                    <h4>HEDValidatorClient Methods:</h4>
+                    <ul style="margin-left: 1.5rem; line-height: 1.6;">
+                        <li><code>validateString(hedString, options)</code> - Validate a HED string</li>
+                        <li><code>validateTsv(tsvData, options)</code> - Validate TSV file data</li>
+                        <li><code>validateSidecar(jsonData, options)</code> - Validate sidecar JSON</li>
+                        <li><code>initialize()</code> - Initialize and check server availability</li>
+                    </ul>
+                    
+                    <h4>Static Utility Methods:</h4>
+                    <ul style="margin-left: 1.5rem; line-height: 1.6;">
+                        <li><code>HEDValidatorClient.formatResults(result)</code> - Format results for display</li>
+                        <li><code>HEDValidatorClient.createValidationForm(containerId)</code> - Create pre-built form</li>
+                        <li><code>HEDValidatorClient.getAvailableVersions()</code> - Get available HED versions</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="hed-validator-client.js"></script>
+    <script>
+        let demoValidator = null;
+
+        // Initialize validator and create quick form
+        document.addEventListener('hed-validator-ready', (event) => {
+            const statusBar = document.getElementById('status-bar');
+            const isServerAvailable = event.detail.serverAvailable;
+            
+            if (isServerAvailable) {
+                statusBar.innerHTML = '<div class="status-indicator status-success"></div><span>✅ Connected to HED server - full validation available</span>';
+            } else {
+                statusBar.innerHTML = '<div class="status-indicator status-warning"></div><span>⚠️ Server not available - using mock validation for demonstration</span>';
+            }
+        });
+
+        // Initialize validator and create form
+        window.addEventListener('load', () => {
+            demoValidator = HEDValidatorClient.createValidationForm('quick-validator-container');
+        });
+
+        // Demo functions
+        const demoExamples = {
+            'valid-string': {
+                type: 'string',
+                input: 'Event/Sensory-event, Red, Blue',
+                options: { checkForWarnings: true }
+            },
+            'invalid-string': {
+                type: 'string',
+                input: 'InvalidTag, AnotherInvalidTag',
+                options: { checkForWarnings: true }
+            },
+            'warning-string': {
+                type: 'string',
+                input: 'Event, Item/MyCustomObject',
+                options: { checkForWarnings: true }
+            },
+            'tsv-data': {
+                type: 'tsv',
+                input: `onset	duration	trial_type	HED
+1.0	2.0	go	Event/Sensory-event, Red
+3.0	2.0	stop	InvalidTag
+5.0	2.0	neutral	Event/Sensory-event, Blue`,
+                options: { checkForWarnings: true }
+            },
+            'sidecar-json': {
+                type: 'sidecar',
+                input: `{
+  "trial_type": {
+    "go": {"HED": "Event/Sensory-event, Green"},
+    "stop": {"HED": "InvalidTag"},
+    "neutral": {"HED": "Event/Sensory-event, Blue"}
+  }
+}`,
+                options: { checkForWarnings: true }
+            },
+            'error-handling': {
+                type: 'sidecar',
+                input: `{
+  "trial_type": {
+    "go": {"HED": "Event/Sensory-event, Green"
+    // Missing closing brace - this is invalid JSON
+}`,
+                options: { checkForWarnings: true }
+            }
+        };
+
+        async function runDemo(demoId) {
+            const resultsDiv = document.getElementById('demo-results');
+            const demo = demoExamples[demoId];
+            
+            if (!demo || !demoValidator) {
+                resultsDiv.textContent = 'Demo not available or validator not initialized.';
+                return;
+            }
+            
+            // Show loading
+            resultsDiv.innerHTML = '<span style="color: #666; font-style: italic;">🔄 Running demo...</span>';
+            
+            try {
+                let result;
+                
+                switch (demo.type) {
+                    case 'string':
+                        result = await demoValidator.validateString(demo.input, demo.options);
+                        break;
+                    case 'tsv':
+                        result = await demoValidator.validateTsv(demo.input, demo.options);
+                        break;
+                    case 'sidecar':
+                        result = await demoValidator.validateSidecar(demo.input, demo.options);
+                        break;
+                    default:
+                        throw new Error('Unknown demo type');
+                }
+                
+                // Format and display results
+                const formattedResults = HEDValidatorClient.formatResults(result);
+                resultsDiv.textContent = `Demo: ${demoId}\n\nInput:\n${demo.input}\n\n${formattedResults}`;
+                
+            } catch (error) {
+                resultsDiv.textContent = `Demo failed: ${error.message}`;
+            }
+        }
+
+        console.log('🎮 HED Validator demo page loaded successfully!');
+    </script>
+</body>
+</html>
