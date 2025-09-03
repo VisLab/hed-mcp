@@ -1,9 +1,5 @@
 name: CI/CD Pipeline
 
-permissions:
-  contents: read
-  id-token: write
-
 on:
   push:
     branches: [ main ]
@@ -15,9 +11,6 @@ jobs:
   test:
     name: Test Suite
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     
     strategy:
       matrix:
@@ -45,13 +38,6 @@ jobs:
       
     - name: Run tests
       run: npm run test:ci
-      
-    - name: Upload coverage to Quality
-      if: matrix.node-version == '22.x'
-      uses: qltysh/qlty-action/coverage@v2
-      with:
-        oidc: true
-        files: coverage/lcov.info
 
 
 
