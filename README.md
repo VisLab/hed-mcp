@@ -3,7 +3,8 @@
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue)](https://www.typescriptlang.org/)
 [![MCP](https://img.shields.io/badge/MCP-1.16.0-green)](https://modelcontextprotocol.io/)
-
+[![Maintainability](https://qlty.sh/gh/hed-standard/projects/hed-mcp/maintainability.svg)](https://qlty.sh/gh/hed-standard/projects/hed-mcp)
+[![Code Coverage](https://qlty.sh/gh/hed-standard/projects/hed-mcp/coverage.svg)](https://qlty.sh/gh/hed-standard/projects/hed-mcp)
 ## Introduction
 
 A Model Context Protocol (MCP) server for validating HED (Hierarchical Event Descriptor) data. This server provides comprehensive HED validation tools through the standardized MCP interface, making HED validation accessible to any MCP-compatible client.
@@ -84,18 +85,26 @@ The hierarchical structure is used for search generality -- allowing a search fo
 
 #### Basic event description
 ```
-Sensory-event, Property/Sensory-property/Visual/Color/Red
+Sensory-event, Red
 ```
 
 #### Grouped Tags
 ```
-(Event/Sensory-event, (Property/Sensory-property/Visual/Color/Red, Property/Physical-property/Size/Large))
+Sensory-event, (Red, Square)
 ```
 
 #### Using Definitions
+
+You can create definitions to represent strings of tags that you frequently use:
 ```
-Def/StimulusOnset, Property/Sensory-property/Visual/Color/Blue
+(Definition/BlueSquare, ((Background-view, Black), ((Blue, Square), (Center-of, Computer-Screen))))
 ```
+The annotation:
+```
+Def/BlueSquare
+```
+can appear anywhere a normal HED tag would.
+Tools can substitute the full annotation when needed.
 
 ### Schema Versions
 
@@ -112,7 +121,7 @@ HED schemas evolve over time. Use the latest version whenever possible:
 
 Before using the HED MCP Server, ensure you have:
 
-1. **Node.js 18+**: Download from [nodejs.org](https://nodejs.org/)
+1. **Node.js 22+**: Download from [nodejs.org](https://nodejs.org/)
 2. **Basic understanding of HED**: Familiarity with HED concepts is helpful
 3. **MCP-compatible client**: Such as the MCP Inspector or custom client
 
@@ -151,20 +160,23 @@ HED MCP Server (src)
 ├── resources/             # Schema Information
 │   └── hedSchema.ts
 ├── utils/                 # Utilities
-│   ├── schemaCache.ts     # Schema caching system
 │   ├── definitionProcessor.ts
 │   ├── fileReader.ts
 │   ├── issueFormatter.ts
-│   └── mcpToZod.ts
+│   ├── mcpToZod.ts
+│   └── schemaCache.ts     # Schema caching system
 └── types/                 # TypeScript definitions
 
 Examples (examples/)
+├── definition-usage.ts    # Example of HED definition processing
+├── hed-demo.html          # Interactive demo and integration guide
+├── hed-validator-client.js # Modern browser client for HED validation
+├── hed-validator.css      # Styles for the browser interface
+├── hed-validator.html     # Full-featured browser validation interface
 ├── http-server.ts         # HTTP REST API server example
-├── hed-validator.html     # Browser validation interface
-├── hed-demo.html         # Interactive demo and guide
-├── mcp-client.js         # MCP protocol client example
-└── ...                   # Additional examples and utilities
-    └── index.ts
+├── mcp-client.js          # Interactive MCP client example
+├── README.md              # README for the examples
+└── test-server.js         # Automated server testing script
 ```
 
 ### Data Flow
@@ -1115,6 +1127,7 @@ This project is licensed under the ISC License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- [**Issues**](https://github.com/hed-standard/hed-mcp/issues)
-- [**HED homepage**](https://github.com/hed-standard)
-- [**Documentation**](https://www.hed-resources.org/)
+- [Issues](https://github.com/hed-standard/hed-mcp/issues)
+- [HED homepage](https://github.com/hed-standard)
+- [Documentation](https://www.hedtags.org/hed-resources)
+- [Discussion](https://github.com/orgs/hed-standard/discussions)
