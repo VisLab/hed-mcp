@@ -156,3 +156,6 @@ temp/
 !.github/workflows/
 !.github/workflows/*.yml
 !.github/workflows/*.yaml
+
+# Project
+.status/

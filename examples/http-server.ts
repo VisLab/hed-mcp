@@ -37,6 +37,7 @@
 
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import path from 'path';
 import { 
   handleValidateHedString,
   ValidateHedStringArgs 
@@ -61,6 +62,7 @@ import {
 class HEDHttpServer {
   private app: express.Application;
   private port: number;
+  private readonly examplesDir: string = path.resolve(__dirname, '..', '..', 'examples');
 
   constructor(port: number = 3000) {
     this.app = express();
@@ -82,12 +84,15 @@ class HEDHttpServer {
     
     // Parse URL-encoded bodies
     this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-  // Request logging
-  this.app.use((req: Request, res: Response, next: NextFunction) => {
+    
+    // Request logging
+    this.app.use((req: Request, res: Response, next: NextFunction) => {
       console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
       next();
     });
+
+    // Serve static files from the examples directory
+    this.app.use(express.static(this.examplesDir));
   }
 
   private setupRoutes(): void {
@@ -114,7 +119,7 @@ class HEDHttpServer {
           'POST /api/validate/tsv': 'Validate TSV file data',
           'POST /api/validate/sidecar': 'Parse and validate sidecar JSON'
         },
-        documentation: 'https://github.com/VisLab/hed-mcp-typescript'
+        documentation: 'https://github.com/hed-standard/hed-mcp'
       });
     });
 
@@ -239,15 +244,15 @@ class HEDHttpServer {
     
     // Serve the browser validator at root
   this.app.get('/', (req: Request, res: Response) => {
-      res.sendFile('browser-validator.html', { root: process.cwd() });
+      res.sendFile(path.join(this.examplesDir, 'hed-validator.html'));
     });
 
     // Error handling middleware
-  this.app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
-      console.error('Unhandled error:', error);
+  this.app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+      console.error('Unhandled error:', err);
       res.status(500).json({
         error: 'Internal server error',
-        message: error.message
+        message: err.message
       });
     });
 
