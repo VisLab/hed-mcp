@@ -1,5 +1,4 @@
 [files]
-# Match the previous codespell skip behavior.
 extend-exclude = [
   "datasets",
   ".git",
@@ -16,7 +15,6 @@ extend-exclude = [
 ]
 
 [default.extend-words]
-# Match previous codespell ignore-words-list behavior.
 covert = "covert"
 hed = "hed"
 recuse = "recuse"
