@@ -13,8 +13,9 @@ export default {
       tsconfig: 'tsconfig.test.json'
     }]
   },
-  moduleNameMapping: {
-    '^(\\.{1,2}/.*)\\.js$': '$1'
+  moduleNameMapper: {
+    'hed-validator': '<rootDir>/node_modules/hed-validator/dist/commonjs/index.js',
+    '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   collectCoverageFrom: [
     'src/**/*.ts',
