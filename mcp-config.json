@@ -2,8 +2,8 @@
   "servers": {
     "hed-mcp": {
       "command": "node",
-      "args": ["dist/server.js"],
-      "cwd": "h:\\Repos\\hed-mcp-typescript"
+      "args": ["dist/src/server.js"],
+      "cwd": "/path/to/hed-mcp"
     }
   }
 }

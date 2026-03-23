@@ -40,7 +40,7 @@ All CI runs on **ubuntu-latest** with Node 22.x/24.x. To avoid CI failures, repl
 |-------|----------|--------------------|
 | Build | `ci.yml` | `npm run build` — must succeed with no errors |
 | Tests | `ci.yml` | `npm run test:ci` — all 142 tests must pass |
-| Typos | `typos.yaml` | `npx typos --config .typos.toml` (or install [typos-cli](https://github.com/crate-ci/typos)) |
+| Typos | `typos.yaml` | `uvx typos --config .typos.toml` (requires [uv](https://docs.astral.sh/uv/); or install the [typos binary](https://github.com/crate-ci/typos) directly) |
 | Build artifact check | `ci.yml` | Verify `dist/src/server.js` exists after build |
 | Security audit | `ci.yml` | `npm audit --audit-level=moderate` (allowed to fail) |
 | Link checker | `links.yaml` | Weekly only; uses lychee with `lychee.toml` config |

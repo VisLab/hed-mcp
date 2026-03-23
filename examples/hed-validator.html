@@ -289,7 +289,7 @@
                 const result = await validator.validateTsv(tsvData, {
                     hedVersion,
                     checkForWarnings: checkWarnings,
-                    sidecarData
+                    jsonData: sidecarData
                 });
                 
                 await showResults('tsv-results', result, 'Validating TSV data...');

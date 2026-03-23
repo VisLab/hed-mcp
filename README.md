@@ -25,7 +25,7 @@ Model Context Protocol (MCP) is:
 - Provides a consistent interface across different implementations
 - Facilitates integration between diverse software systems
 
-## 🚀 Features
+## Features
 
 - **HED string validation**: Validate individual HED tag strings against schema specifications
 - **TSV file validation**: Validate entire BIDS TSV files containing HED annotations
@@ -38,7 +38,7 @@ Model Context Protocol (MCP) is:
 - **Multiple interfaces**: MCP server (stdio/WebSocket) + HTTP REST API
 - **Browser compatibility**: Full browser support with multiple integration options
 
-## 📋 Table of Contents
+## Table of contents
 
 - [Understanding HED](#understanding-hed)
 - [Installation](#installation)
@@ -115,7 +115,7 @@ HED schemas evolve over time. Use the latest version whenever possible:
   - `lang_1.1.0` - Language-related tags
   - `score_2.1.0` - EEG features based on SCORE standard
 
-## 🔧 Installation
+## Installation
 
 ### Prerequisites
 
@@ -195,7 +195,7 @@ The server implements intelligent caching:
 - **Definition caching**: Reuses processed definitions
 - **Memory management**: Automatic cleanup of unused cache entries
 
-## � Quick start
+## Quick start
 
 ### Run with MCP Inspector
 
@@ -235,7 +235,7 @@ node test-mcp-client.js
 3. **List available tools** to see what's available
 4. **Try a simple validation** with `validateHedString`
 
-## 🛠 Available tools
+## Available tools
 
 | Tool | Description | Required parameters | Optional parameters |
 |------|-------------|-------------------|-------------------|
@@ -325,7 +325,7 @@ node test-mcp-client.js
 - Check file permissions and existence
 - Handle file encoding properly (UTF-8 recommended)
 
-## 💡 Usage examples
+## Usage examples
 
 ### Validate a HED string
 
@@ -514,7 +514,7 @@ node test-mcp-client.js
 - [ ] Schema version appropriate for dataset
 - [ ] Annotations consistent across similar events
 
-## 🌐 Browser usage
+## Browser usage
 
 The HED MCP server can be used in browsers through several approaches. All browser files are located in the `examples/` directory.
 
@@ -614,16 +614,16 @@ The browser client automatically detects and uses the server at `http://localhos
             const resultsDiv = document.getElementById('results');
             
             if (result.errors.length === 0) {
-                resultsDiv.innerHTML = '<p style="color: green;">✅ Valid HED string!</p>';
+                resultsDiv.innerHTML = '<p style="color: green;">Valid HED string!</p>';
             } else {
-                resultsDiv.innerHTML = '<p style="color: red;">❌ Validation errors:</p>';
+                resultsDiv.innerHTML = '<p style="color: red;">Validation errors:</p>';
                 result.errors.forEach(error => {
                     resultsDiv.innerHTML += `<p>• ${error.message}</p>`;
                 });
             }
             
             if (result.warnings.length > 0) {
-                resultsDiv.innerHTML += '<p style="color: orange;">⚠️ Warnings:</p>';
+                resultsDiv.innerHTML += '<p style="color: orange;">Warnings:</p>';
                 result.warnings.forEach(warning => {
                     resultsDiv.innerHTML += `<p>• ${warning.message}</p>`;
                 });
@@ -634,7 +634,7 @@ The browser client automatically detects and uses the server at `http://localhos
 </html>
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 ### MCP client configuration
 
@@ -933,7 +933,7 @@ done
 echo "Dataset validation complete!"
 ```
 
-## 👨‍💻 Development
+## Development
 
 ### Project structure
 
@@ -994,7 +994,7 @@ npm run start:http  # Run HTTP API server
    npx @modelcontextprotocol/inspector node dist/server.js
    ```
 
-## 🚨 Troubleshooting
+## Troubleshooting
 
 ### Common issues
 
@@ -1054,7 +1054,7 @@ npm run start:http  # Run HTTP API server
 - Use inline data to avoid file I/O overhead
 - Disable warnings for production validation
 
-## 📖 API documentation
+## API documentation
 
 For detailed API documentation, see [API.md](./API.md).
 
@@ -1065,7 +1065,7 @@ Key concepts:
 - **Schema Caching**: Automatic caching of loaded HED schemas
 - **Definition Support**: Process and use HED definitions during validation
 
-## 🧪 Testing
+## Testing
 
 The project includes comprehensive tests covering:
 
@@ -1097,7 +1097,7 @@ Test files are located in `tests/data/`:
 - `participants_bad.json`
 - `participants_bad.tsv`
 
-## 🤝 Contributing
+## Contributing
 
 1. **Fork the repository**
 2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
@@ -1114,11 +1114,11 @@ Test files are located in `tests/data/`:
 - Add JSDoc comments for public APIs
 - Ensure all tests pass before submitting
 
-## 📄 License
+## License
 
 This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
 
-## 🔗 Related projects
+## Related projects
 
 - [HED Specification](https://hed-specification.readthedocs.io/)
 - [HED JavaScript Library](https://github.com/hed-standard/hed-javascript)

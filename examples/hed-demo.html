@@ -124,7 +124,7 @@ const tsvData = `onset	duration	trial_type	HED
 const result = await validator.validateTsv(tsvData, {
     hedVersion: '8.4.0',
     checkForWarnings: true,
-    sidecarData: null  // Optional sidecar JSON
+    jsonData: null  // Optional sidecar JSON
 });
 
 console.log(`Processed ${result.rowsProcessed} rows`);
