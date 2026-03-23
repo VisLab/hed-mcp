@@ -57,6 +57,9 @@ coverage/
 # nyc test coverage
 .nyc_output
 
+# Status directory
+.status/
+
 # TypeScript cache
 *.tsbuildinfo
 
