@@ -59,7 +59,7 @@ console.log('This demonstrates full MCP protocol communication with the HED serv
 const SERVER_PATH = path.join(__dirname, '..', 'dist', 'src', 'server.js');
 const TEST_TIMEOUT = 15000; // 15 seconds total test time
 
-console.log(`🚀 Starting HED MCP Server: ${SERVER_PATH}`);
+console.log(`Starting HED MCP Server: ${SERVER_PATH}`);
 
 // Start the server with proper path handling
 const server = spawn('node', [SERVER_PATH], {
@@ -80,14 +80,14 @@ server.stdout.on('data', (data) => {
     if (response.trim()) {
       try {
         const parsed = JSON.parse(response);
-        console.log('\n📥 Server Response:');
+        console.log('\nServer response:');
         console.log(JSON.stringify(parsed, null, 2));
         
         // Handle specific response types
         handleServerResponse(parsed);
         
       } catch (e) {
-        console.log('\n📥 Server Output (non-JSON):', response);
+        console.log('\nServer output (non-JSON):', response);
       }
     }
   });
@@ -97,9 +97,9 @@ server.stdout.on('data', (data) => {
 server.stderr.on('data', (data) => {
   const logMsg = data.toString().trim();
   if (logMsg.includes('HED Schema cache initialized')) {
-    console.log('\n✅ Server: Schema cache initialized');
-  } else if (logMsg.includes('HED MCP Server running')) {
-    console.log('✅ Server: MCP server ready');
+      console.log('\nServer: schema cache initialized');
+    } else if (logMsg.includes('HED MCP Server running')) {
+      console.log('Server: MCP server ready');
   } else {
     console.log('\n🔧 Server Debug:', logMsg);
   }
@@ -107,24 +107,24 @@ server.stderr.on('data', (data) => {
 
 // Handle server process events
 server.on('close', (code) => {
-  console.log(`\n🏁 Server exited with code: ${code}`);
+  console.log(`\nServer exited with code: ${code}`);
   if (testPhase === 'completed') {
-    console.log('✅ All tests completed successfully!');
+    console.log('All tests completed successfully!');
     process.exit(0);
   } else {
-    console.log('❌ Server closed unexpectedly during:', testPhase);
+    console.log('Server closed unexpectedly during:', testPhase);
     process.exit(1);
   }
 });
 
 server.on('error', (err) => {
-  console.error('\n❌ Server error:', err.message);
+  console.error('\nServer error:', err.message);
   process.exit(1);
 });
 
 // Enhanced message sending with better logging
 function sendMessage(message, description) {
-  console.log(`\n📤 ${description}:`);
+  console.log(`\n${description}:`);
   console.log(JSON.stringify(message, null, 2));
   server.stdin.write(JSON.stringify(message) + '\n');
 }
@@ -132,13 +132,13 @@ function sendMessage(message, description) {
 // Response handler for different message types
 function handleServerResponse(response) {
   if (response.error) {
-    console.log(`\n❌ Error received: ${response.error.message}`);
+    console.log(`\nError received: ${response.error.message}`);
     return;
   }
   
   // Handle initialization response
   if (response.id === 1 && response.result) {
-    console.log('\n✅ Server initialized successfully!');
+    console.log('\nServer initialized successfully!');
     console.log(`   Protocol Version: ${response.result.protocolVersion}`);
     console.log(`   Server: ${response.result.serverInfo.name} v${response.result.serverInfo.version}`);
     testPhase = 'initialized';
@@ -147,7 +147,7 @@ function handleServerResponse(response) {
   // Handle tools list response
   if (response.id === 2 && response.result?.tools) {
     toolsAvailable = response.result.tools;
-    console.log(`\n✅ Found ${toolsAvailable.length} available tools:`);
+    console.log(`\nFound ${toolsAvailable.length} available tools:`);
     toolsAvailable.forEach(tool => {
       console.log(`   - ${tool.name}: ${tool.description}`);
     });
@@ -157,7 +157,7 @@ function handleServerResponse(response) {
   // Handle resources list response
   if (response.id === 3 && response.result?.resources) {
     resourcesAvailable = response.result.resources;
-    console.log(`\n✅ Found ${resourcesAvailable.length} available resources:`);
+    console.log(`\nFound ${resourcesAvailable.length} available resources:`);
     resourcesAvailable.forEach(resource => {
       console.log(`   - ${resource.name}: ${resource.description}`);
     });
@@ -169,7 +169,7 @@ function handleServerResponse(response) {
     const testNumber = response.id - 3;
     try {
       const content = JSON.parse(response.result.content[0].text);
-      console.log(`\n✅ Validation Test ${testNumber} Results:`);
+      console.log(`\nValidation test ${testNumber} results:`);
       console.log(`   Errors: ${content.errors?.length || 0}`);
       console.log(`   Warnings: ${content.warnings?.length || 0}`);
       
@@ -188,7 +188,7 @@ function handleServerResponse(response) {
       }
       
     } catch (e) {
-      console.log('\n❌ Failed to parse validation result');
+      console.log('\nFailed to parse validation result');
     }
   }
 }
@@ -311,14 +311,14 @@ setTimeout(() => {
 // Final Phase: Graceful shutdown
 setTimeout(() => {
   testPhase = 'completed';
-  console.log('\n� All test scenarios completed!');
-  console.log('\n📊 Test Summary:');
+  console.log('\n All test scenarios completed!');
+  console.log('\n Test Summary:');
   console.log(`   - Tools Available: ${toolsAvailable.length}`);
   console.log(`   - Resources Available: ${resourcesAvailable.length}`);
   console.log('   - Validation Tests: 3 scenarios executed');
   console.log('   - File Access Test: 1 scenario executed');
   
-  console.log('\n🏁 Shutting down server gracefully...');
+  console.log('\n Shutting down server gracefully...');
   server.kill('SIGTERM');
   
   // Fallback exit
@@ -329,23 +329,23 @@ setTimeout(() => {
 
 // Emergency timeout
 setTimeout(() => {
-  console.log('\n⏰ Test timeout reached. Forcing shutdown...');
+  console.log('\n Test timeout reached. Forcing shutdown...');
   server.kill('SIGKILL');
   process.exit(1);
 }, TEST_TIMEOUT);
 
 // Handle process termination signals
 process.on('SIGINT', () => {
-  console.log('\n⚠️ Received SIGINT. Shutting down...');
+  console.log('\n Received SIGINT. Shutting down...');
   server.kill('SIGTERM');
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  console.log('\n⚠️ Received SIGTERM. Shutting down...');
+  console.log('\n Received SIGTERM. Shutting down...');
   server.kill('SIGTERM');
   process.exit(0);
 });
 
-console.log('\n⏱️  Test sequence will run for up to 15 seconds...');
-console.log('📋 Watch for real-time MCP communication below:\n');
+console.log('\n  Test sequence will run for up to 15 seconds...');
+console.log(' Watch for real-time MCP communication below:\n');

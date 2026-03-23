@@ -2,32 +2,25 @@
 
 This directory contains various examples and tools for working with the HED MCP (Model Context Protocol) server. These examples demonstrate different ways to interact with the HED validation system.
 
-## 📁 Files Overview
+## Files overview
 
 ### Browser-based examples
-```javascript
-const validator = new HEDValidatorClient({
-    serverEndpoint: '/api',          // API endpoint base path
-    timeout: 10000,                  // Request timeout in ms
-    retries: 3,                      // Number of retry attempts
-    fallbackToMock: true             // Use mock if server fails
-});
-```es
+
 - **`hed-validator.html`** - Full-featured browser interface for HED validation
 - **`hed-demo.html`** - Interactive demo and integration guide  
 - **`hed-validator-client.js`** - Modern browser client for HED validation
 - **`hed-validator.css`** - Clean, responsive styles for the browser interface
 
-### MCP Integration Examples
+### MCP integration examples
 - **`mcp-client.js`** - Interactive MCP client demonstrating full protocol usage
 - **`test-server.js`** - Automated server testing and validation scenarios
 
-### Development Examples  
+### Development examples
 - **`definition-usage.ts`** - TypeScript example showing HED definition processing
 
 ---
 
-## 🌐 Browser Examples
+## Browser examples
 
 ### HED Validator Interface (`hed-validator.html`)
 
@@ -80,15 +73,15 @@ const result = await validator.validateString('Event/Sensory-event, Red');
 
 // Check results
 if (result.isValid) {
-    console.log('✅ Valid HED string!');
+    console.log('Valid HED string!');
 } else {
-    console.log('❌ Validation errors:', result.errors);
+    console.log('Validation errors:', result.errors);
 }
 ```
 
 ---
 
-## 🔌 MCP Integration Examples
+## MCP integration examples
 
 The HED MCP server provides 4 tools through the Model Context Protocol:
 
@@ -114,10 +107,9 @@ Demonstrates the full MCP protocol workflow:
 node examples/mcp-client.js
 
 # Expected output:
-# 🧠 HED MCP Client Demo
-# 📡 Connecting to MCP server...
-# ✅ Connected to server successfully!
-# ✅ Found 4 available tools:
+# HED MCP Interactive Client Example
+# Connected to server successfully!
+# Found 4 available tools:
 #   - validateHedString: Validate HED string
 #   - validateHedSidecar: Validate HED sidecar  
 #   - validateHedTsv: Validate HED TSV
@@ -145,7 +137,7 @@ npm test -- --examples
 
 ---
 
-## 💻 Development Examples
+## Development examples
 
 ### Definition Processing (`definition-usage.ts`)
 
@@ -168,7 +160,7 @@ npx ts-node examples/definition-usage.ts
 
 ---
 
-## 🚀 Getting Started
+## Getting started
 
 ### 1. Basic Browser Setup
 
@@ -226,7 +218,7 @@ console.log(result);
 
 ---
 
-## 🎯 Use Cases
+## Use cases
 
 ### Research Applications
 - **Experiment Design** - Validate HED annotations during experiment setup
@@ -248,7 +240,7 @@ console.log(result);
 
 ---
 
-## 📋 Requirements
+## Requirements
 
 ### Browser Examples
 - Modern web browser with ES2017+ support
@@ -266,16 +258,14 @@ console.log(result);
 
 ---
 
-## 🔧 Configuration
+## Configuration
 
 ### Client Configuration
 
 ```javascript
 const validator = new HEDValidatorClient({
-    serverEndpoint: '/api/hed',  // Custom API endpoint
-    timeout: 10000,              // Request timeout in ms
-    retries: 3,                  // Number of retry attempts
-    fallbackToMock: true         // Use mock if server fails
+    serverEndpoint: '/api',  // API endpoint (default: '/api')
+    timeout: 10000           // Request timeout in ms (default: 10000)
 });
 ```
 
@@ -296,7 +286,7 @@ The browser examples work with the HED HTTP server configured in `examples/http-
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -329,12 +319,12 @@ Enable debug logging:
 localStorage.setItem('hed-debug', 'true');
 
 // Or in client code
-const validator = new HEDValidatorClient({ debug: true });
+const validator = new HEDValidatorClient();
 ```
 
 ---
 
-## 📚 Additional Resources
+## Additional resources
 
 - **[HED homepage](https://www.hedtags.org/)**
 - **[MCP Protocol specification](https://modelcontextprotocol.io/)** 

@@ -3,20 +3,7 @@
 /**
  * HED MCP Server Test Client
  * 
- * This script demonstrates how to interact //Handle server // Handle server exit
-server.on('close', (code) => {
-  // Test completed successfully if we get here
-  process.exit(0);
-});r.on('close', (code) => {
-  console.log(`\n🏁 Server exited with code ${code}`);
-  
-  if (code === 0 || code === null) {
-    console.log('✅ Test completed successfully!');
-  } else {
-    console.log('❌ Test failed - server exited with error');
-    process.exit(1);
-  }
-});D MCP server programmatically.
+ * This script demonstrates how to interact with the HED MCP server programmatically.
  * It tests the basic MCP protocol communication including initialization, 
  * tool discovery, and sample validation calls.
  * 
