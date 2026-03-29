@@ -49,7 +49,7 @@ export class SchemaCache {
       
       return hedSchemas;
     } catch (error) {
-      console.error(`Failed to load HED schema for version ${normalizedVersion}:`, error);
+      console.error('Failed to load HED schema for version', normalizedVersion, error);
       throw error;
     }
   }
