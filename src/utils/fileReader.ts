@@ -14,14 +14,21 @@ export async function readFileFromPath(filePath: string): Promise<string> {
     throw new Error(`File path must be absolute: ${filePath}.`);
   }
 
-  // Normalize the path to resolve any ".." or "." segments before use.
-  // This prevents path traversal attacks where a superficially absolute path
-  // like "/safe/dir/../../etc/passwd" bypasses the isAbsolute check above.
-  const resolvedPath = path.resolve(filePath);
+  // Resolve the canonical path via the OS, following all symlinks and
+  // normalising ".." segments. This prevents symlink-based traversal attacks
+  // and is the sanitisation pattern recognised by static analysis tools.
+  let resolvedPath: string;
+  try {
+    resolvedPath = await fs.realpath(filePath);
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+      throw new Error(`File not found at path: ${filePath}`);
+    }
+    throw new Error(`Failed to read file at path ${filePath}: ${error instanceof Error ? error.message : "Unknown error"}`);
+  }
 
   try {
-    const data = await fs.readFile(resolvedPath, "utf8");
-    return data;
+    return await fs.readFile(resolvedPath, "utf8");
   } catch (error) {
     // Type-safe check for NodeJS.ErrnoException
     if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {

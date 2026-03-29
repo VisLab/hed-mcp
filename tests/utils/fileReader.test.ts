@@ -46,5 +46,13 @@ describe('fileReader utility', () => {
       const dirPath = path.join(__dirname, '..', 'data');
       await expect(readFileFromPath(dirPath)).rejects.toThrow('Failed to read file at path');
     });
+
+    test('should read file when path contains redundant .. segments', async () => {
+      // A path with extra ".." that still resolves to a real file should succeed
+      const pathWithDots = path.join(__dirname, '..', 'data', '..', 'data', 'participants_bad.json');
+      const content = await readFileFromPath(pathWithDots);
+      expect(typeof content).toBe('string');
+      expect(content.length).toBeGreaterThan(0);
+    });
   });
 });
