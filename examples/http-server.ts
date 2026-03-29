@@ -38,6 +38,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import path from 'path';
+import rateLimit from 'express-rate-limit';
 import { 
   handleValidateHedString,
   ValidateHedStringArgs 
@@ -78,6 +79,15 @@ class HEDHttpServer {
       methods: ['GET', 'POST', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization']
     }));
+
+    // Rate limiting: max 100 requests per 15 minutes per IP
+    const limiter = rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 100,
+      standardHeaders: true,
+      legacyHeaders: false
+    });
+    this.app.use(limiter);
 
     // Parse JSON bodies
     this.app.use(express.json({ limit: '10mb' }));
